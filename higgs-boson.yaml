@@ -1,0 +1,50 @@
+# This file is part of higgs-boson.
+#
+# Copyright (c) BitBoson
+#
+# higgs-boson is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# higgs-boson is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with higgs-boson.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Written by:
+#     - Tyler Parcell <OriginLegend>
+#
+
+# Setup the main project settings
+project:
+  type: exe
+  name: higgs-boson
+  version: 0.1.0
+  source: src
+  test: test
+  main: src/BitBoson/HiggsBoson/main.cpp
+  targets:
+    - linux-x86
+    - windows-shared-x86
+    - x86_64-apple-darwin
+
+# Setup the project dependencies
+dependencies:
+
+  # Setup the external dependency: mini-yaml
+  - name: miniyaml
+    source: git
+    url:  git://github.com/bitboson-deps/mini-yaml.git
+    rev: 22d3dcf5684a11f9c0508c1ad8b3282a1d888319
+    type: manual
+    target any:
+      build:
+        - ${CXX} -std=c++11 -fPIC -shared yaml/Yaml.cpp -o libminiyaml.${LIB_EXT}
+      libs:
+        - libminiyaml.${LIB_EXT}
+      include:
+        - yaml
