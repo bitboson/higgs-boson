@@ -73,6 +73,7 @@ bool HiggsBoson::buildDependencies(const std::string& target)
 
     // Define the appropriate directories for the target
     std::string targetCacheDir = _cacheDir + "/output/" + target;
+    std::string targetHeaderCacheDir = _cacheDir + "/includes/" + target;
 
     // Only continue if the provided target is a valid one for the project
     auto validTargets = _configuration->getConfiguredTargets();
@@ -81,6 +82,10 @@ bool HiggsBoson::buildDependencies(const std::string& target)
 
         // Remove the corresponding output directory
         ExecShell::exec("rm -rf " + targetCacheDir);
+        ExecShell::exec("rm -rf " + targetHeaderCacheDir);
+
+        // Re-create the output header cache directory
+        retFlag &= (system(std::string("mkdir -p " + targetHeaderCacheDir).c_str()) == 0);
 
         // Handle the building and outputs for all of the dependencies
         for (const auto& dependency : _configuration->getDependencies())
@@ -94,16 +99,17 @@ bool HiggsBoson::buildDependencies(const std::string& target)
                     _configuration->getLibrariesOutputForDependency(dependency, target),
                     _configuration->getHeadersOutputForDependency(dependency, target));
 
-            // Get the dependency name and upper-case it for use in the environment variables
-            std::string depName = dependency->getName();
-            std::transform(depName.begin(), depName.end(), depName.begin(), ::toupper);
-
             // Ensure the dependency-target directory exist
             retFlag &= (system(std::string("mkdir -p " + depCacheDir).c_str()) == 0);
 
-            // Write the libraries to the cache and output directories
+            // Write the libraries to the cache output directories
             for (const auto& library : dependency->getLibraries(target))
                 retFlag &= (system(std::string("cp " + library + " " + depCacheDir).c_str()) == 0);
+
+            // Write the headers to the cache output directories
+            auto depOutputHeaderDir = std::string(dependency->getHeaderDir(target) + "/");
+            auto cacheOutputHeaderDir = std::string(targetHeaderCacheDir + "/");
+            retFlag &= (system(std::string("rsync -av " + depOutputHeaderDir + " " + cacheOutputHeaderDir).c_str()) == 0);
         }
     }
 

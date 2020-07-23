@@ -361,8 +361,9 @@ int main(int argc, char* argv[])
 
     // Assume all commands are run in the default Higgs-Boson docker container
     // unless otherwise specified
-    HiggsBoson::RunTypeSingleton::setRunTypeCommand(setupDockerImage("higgs-boson",
-            currentPath, currentPath + "/.higgs-boson"));
+    if ((argc <= 2) || (std::string(argv[2]) != "internal"))
+        HiggsBoson::RunTypeSingleton::setRunTypeCommand(setupDockerImage("higgs-boson",
+                currentPath, currentPath + "/.higgs-boson"));
 
     // Handle download command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "download"))

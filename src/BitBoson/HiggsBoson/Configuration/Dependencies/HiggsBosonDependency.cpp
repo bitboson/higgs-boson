@@ -99,7 +99,9 @@ bool HiggsBosonDependency::compileTarget(const std::string& target,
             cacheLibsVect.push_back(libPath);
 
         // Forcibly archive/cache the corresponding atrifacts
-        retFlag = _internalDep->postBuildArtifactCache(target, cacheLibsVect, {_projectSource + "/"}, true);
+        retFlag = _internalDep->postBuildArtifactCache(target, cacheLibsVect,
+                    {_projectSource + "/",
+                     _headersOutput + "/" + target + "/higgs-boson_" + target + "_headers/"}, true);
     }
 
     // Return the return flag
@@ -147,6 +149,7 @@ bool HiggsBosonDependency::setupFromConfig(const std::string& dir, const std::st
         // copies later in the output for the dependency
         // TODO - Eventually add configurable output directory
         _projectOutput = dir + "/output";
+        _headersOutput = dir + "/.higgs-boson/includes";
         _projectSource = dir + "/" + root["project"]["source"].As<std::string>();
 
         // Setup the internal ManualDependency with the required build-steps

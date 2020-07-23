@@ -38,6 +38,7 @@ namespace BitBoson
         private:
             std::string _confFile;
             std::string _projectOutput;
+            std::string _headersOutput;
             std::string _projectSource;
             std::shared_ptr<ManualDependency> _internalDep;
 
