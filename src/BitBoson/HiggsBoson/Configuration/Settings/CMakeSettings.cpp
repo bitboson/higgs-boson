@@ -445,8 +445,10 @@ bool CMakeSettings::testCMakeProject(TestType testType, const std::string& testF
                 // Write-in the actual Make command
                 makeShellFile << "# Run the Make Operation: " << testTypeString << std::endl;
                 makeShellFile << makeCommand << std::endl;
-                if (testType != TestType::COVERAGE)
+                if ((testType != TestType::COVERAGE) && (testType != TestType::DEBUG))
                     makeShellFile << libraryLdPathString + " " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test " << testFilter << std::endl;
+                if (testType == TestType::DEBUG)
+                    makeShellFile << libraryLdPathString + " gdb " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test" << std::endl;
                 makeShellFile << std::endl;
 
                 // Write-in the post-test commands
@@ -642,7 +644,7 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             // Write-in the CMake threading support
             cMakeFile << "# Add threading to the build process" << std::endl;
             cMakeFile << "find_package(Threads)" << std::endl;
-            cMakeFile << "SET(CMAKE_CXX_FLAGS \"-pthread -std=c++17\")" << std::endl;
+            cMakeFile << "SET(CMAKE_CXX_FLAGS \"-pthread\")" << std::endl;
             cMakeFile << std::endl;
 
             // Write-in the CMake LLVM coverage information

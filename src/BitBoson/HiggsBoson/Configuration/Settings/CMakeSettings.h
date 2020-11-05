@@ -37,6 +37,7 @@ namespace BitBoson
             enum TestType
             {
                 TEST,
+                DEBUG,
                 COVERAGE,
                 SANITIZE_ADDRESS,
                 SANITIZE_BEHAVIOR,

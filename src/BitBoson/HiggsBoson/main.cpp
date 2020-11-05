@@ -206,7 +206,7 @@ std::string setupDockerImage(const std::string& target,
         ExecShell::execWithResponse("Building Higgs-Boson Docker Image",
                 "cd " + cacheDir + "/dockcross"
                 + std::string(makeDockerContainer ? " && make higgs-boson" : "")
-                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --rm -w " + projectDir + " -v "
+                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --interactive --rm -w " + projectDir + " -v "
                     + projectDir + ":" + projectDir + " -t bitboson/higgs-builder \"\\$\\@\"\" > ./bitboson-higgs-builder"
                 + " && chmod +x ./bitboson-higgs-builder");
 
@@ -281,6 +281,7 @@ int main(int argc, char* argv[])
         std::cout << "  build-deps <target*>          Build all external dependencies for a given target" << std::endl;
         std::cout << "  build <target*>               Build the main project for a given target" << std::endl;
         std::cout << "  test <filter>                 Run the provided/desired tests (wild-card filter)" << std::endl;
+        std::cout << "  debug                         Run the provided/desired tests in debugging mode" << std::endl;
         std::cout << "  coverage                      Run all tests and produce a code-coverage report (including html)" << std::endl;
         std::cout << "  sanitize <type**>             Run the provided/desired code sanitizer for code quality" << std::endl;
         std::cout << std::endl;
@@ -468,6 +469,10 @@ int main(int argc, char* argv[])
     // Handle test command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "test"))
         higgsBoson.testProject(CMakeSettings::TestType::TEST, testFilter);
+
+    // Handle debug command (if applicable)
+    if ((argc > 1) && (std::string(argv[1]) == "debug"))
+        higgsBoson.testProject(CMakeSettings::TestType::DEBUG, testFilter);
 
     // Handle coverage command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "coverage"))
