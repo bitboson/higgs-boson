@@ -281,6 +281,7 @@ int main(int argc, char* argv[])
         std::cout << "  build-deps <target*>          Build all external dependencies for a given target" << std::endl;
         std::cout << "  build <target*>               Build the main project for a given target" << std::endl;
         std::cout << "  test <filter>                 Run the provided/desired tests (wild-card filter)" << std::endl;
+        std::cout << "  profile <filter>              Run the provided/desired profile tests (wild-card filter)" << std::endl;
         std::cout << "  debug                         Run the provided/desired tests in debugging mode" << std::endl;
         std::cout << "  coverage                      Run all tests and produce a code-coverage report (including html)" << std::endl;
         std::cout << "  sanitize <type**>             Run the provided/desired code sanitizer for code quality" << std::endl;
@@ -465,6 +466,10 @@ int main(int argc, char* argv[])
             || ((argc > 1) && (std::string(argv[1]) != "sanitize")
                 && (argc > 2) && (!std::string(argv[2]).empty())))
         testFilter = std::string(argv[2]);
+
+    // Handle test command (if applicable)
+    if ((argc > 1) && (std::string(argv[1]) == "profile"))
+        higgsBoson.testProject(CMakeSettings::TestType::PROFILE, testFilter);
 
     // Handle test command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "test"))

@@ -19,6 +19,7 @@
  *     - Tyler Parcell <OriginLegend>
  */
 
+#include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -154,7 +155,7 @@ bool HiggsBosonDependency::setupFromConfig(const std::string& dir, const std::st
 
         // Setup the internal ManualDependency with the required build-steps
         // for each of the configured targets (including dependency downloads)
-        for (const auto& target : getTargetsFromConfig(higgsConfig))
+        for (std::string target : getTargetsFromConfig(higgsConfig))
             _internalDep->setBuildSteps(target,
                     {
                         "higgs-boson download internal",

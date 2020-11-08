@@ -371,6 +371,11 @@ bool CMakeSettings::testCMakeProject(TestType testType, const std::string& testF
             testCMakeVarString = "-DSANITIZE_LEAK=1";
             break;
 
+        // Handle the "SANITIZE_LEAK" enumeration case
+        case PROFILE:
+            testTypeString = "profile";
+            break;
+
         // Handle the default case
         default:
             testTypeString = "test";
@@ -445,10 +450,12 @@ bool CMakeSettings::testCMakeProject(TestType testType, const std::string& testF
                 // Write-in the actual Make command
                 makeShellFile << "# Run the Make Operation: " << testTypeString << std::endl;
                 makeShellFile << makeCommand << std::endl;
-                if ((testType != TestType::COVERAGE) && (testType != TestType::DEBUG))
+                if ((testType != TestType::COVERAGE) && (testType != TestType::DEBUG) && (testType != TestType::PROFILE))
                     makeShellFile << libraryLdPathString + " " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test " << testFilter << std::endl;
-                if (testType == TestType::DEBUG)
+                else if (testType == TestType::DEBUG)
                     makeShellFile << libraryLdPathString + " gdb " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test" << std::endl;
+                else if (testType == TestType::PROFILE)
+                    makeShellFile << libraryLdPathString + " valgrind --tool=callgrind " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test " << testFilter << std::endl;
                 makeShellFile << std::endl;
 
                 // Write-in the post-test commands

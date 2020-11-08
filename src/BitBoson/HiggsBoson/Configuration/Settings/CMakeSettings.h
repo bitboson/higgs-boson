@@ -42,7 +42,8 @@ namespace BitBoson
                 SANITIZE_ADDRESS,
                 SANITIZE_BEHAVIOR,
                 SANITIZE_THREAD,
-                SANITIZE_LEAK
+                SANITIZE_LEAK,
+                PROFILE
             };
 
         // Private member variables
