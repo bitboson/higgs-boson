@@ -455,7 +455,7 @@ bool CMakeSettings::testCMakeProject(TestType testType, const std::string& testF
                 else if (testType == TestType::DEBUG)
                     makeShellFile << libraryLdPathString + " gdb " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test" << std::endl;
                 else if (testType == TestType::PROFILE)
-                    makeShellFile << libraryLdPathString + " valgrind --tool=callgrind " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test " << testFilter << std::endl;
+                    makeShellFile << libraryLdPathString + " valgrind --tool=callgrind --separate-threads=yes " + _cMakeCacheDir + "/builds/" + testTypeString + "/bin/" + _projectName + "_test " << testFilter << std::endl;
                 makeShellFile << std::endl;
 
                 // Write-in the post-test commands

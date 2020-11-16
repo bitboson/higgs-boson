@@ -101,8 +101,7 @@ bool HiggsBosonDependency::compileTarget(const std::string& target,
 
         // Forcibly archive/cache the corresponding atrifacts
         retFlag = _internalDep->postBuildArtifactCache(target, cacheLibsVect,
-                    {_projectSource + "/",
-                     _headersOutput + "/" + target + "/higgs-boson_" + target + "_headers/"}, true);
+                    {_projectSource + "/", _headersOutput + "/" + target + "/"}, true);
     }
 
     // Return the return flag
