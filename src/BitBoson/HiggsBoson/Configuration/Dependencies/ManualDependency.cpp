@@ -170,7 +170,7 @@ bool ManualDependency::postBuildArtifactCache(const std::string& target,
         // Actually perform the copy operation
         std::string buildMessage = "Caching " + getName() + " Binary ";
         auto buildMessage2 = " for Target " + target;
-        for (const auto libPath : libPaths)
+        for (const auto& libPath : libPaths)
             retFlag = ExecShell::execWithResponse(
                     buildMessage + (
                             (fullPathsGiven && (libPath.find_last_of('/') != std::string::npos)) ? libPath.substr(libPath.find_last_of('/') + 1) : libPath
@@ -186,7 +186,7 @@ bool ManualDependency::postBuildArtifactCache(const std::string& target,
         // Actually perform the copy operation
         std::string buildMessage = "Caching " + getName() + " Headers ";
         auto buildMessage2 = " for Target " + target;
-        for (const auto headerDir : headerDirs)
+        for (const auto& headerDir : headerDirs)
             retFlag = ExecShell::execWithResponse(
                     buildMessage + (
                             (fullPathsGiven && (headerDir.find_last_of('/') != std::string::npos)) ? headerDir.substr(headerDir.find_last_of('/') + 1) : headerDir

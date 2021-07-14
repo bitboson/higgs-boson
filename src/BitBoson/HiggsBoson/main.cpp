@@ -206,7 +206,8 @@ std::string setupDockerImage(const std::string& target,
         ExecShell::execWithResponse("Building Higgs-Boson Docker Image",
                 "cd " + cacheDir + "/dockcross"
                 + std::string(makeDockerContainer ? " && make higgs-boson" : "")
-                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --interactive --rm -w " + projectDir + " -v "
+                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --interactive --rm -w " + projectDir
+                    + " --mount type=tmpfs,destination=/ramdisk " + " -v "
                     + projectDir + ":" + projectDir + " -t bitboson/higgs-builder \"\\$\\@\"\" > ./bitboson-higgs-builder"
                 + " && chmod +x ./bitboson-higgs-builder");
 
