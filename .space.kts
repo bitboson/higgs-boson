@@ -44,7 +44,9 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
 
     // Clone Dockcross to use as the build-image
     // Location: /mnt/space/work/dockcross
-    git("dockcross")
+    git("dockcross") {
+        refSpec = "refs/heads/higgs-boson"
+    }
 
     // Construct the Higgs-Boson container for use in future builds
     docker {
