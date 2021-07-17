@@ -25,12 +25,30 @@
 // For more info, see https://www.jetbrains.com/help/space/automation.html
 //
 
+// Build the standard builder container (with C++ tools) for Higgs-Boson
+job("Build the standard builder container for Higgs-Boson to use") {
+
+    // Actually construct the container
+    docker {
+        build {
+            context = "docker"
+            file = "./docker/Dockerfile"
+            labels["vendor"] = "bitboson"
+        }
+
+        push("bitboson.registry.jetbrains.space/p/mp/higgs-boson/higgs-boson-project-build-image") {
+            tags("version1.0")
+        }
+    }
+}
+
 // Build the Docker-container for building Higgs-Boson projects
 job("Build Higgs-Boson Default Binaries and Builder container") {
 
     // Build the Default Linux Binaries for the Docker Image
     // Output: /mnt/space/share/higgs-boson
-    container(displayName = "Build Default Linux Binaries", image = "ubuntu") {
+    container(displayName = "Build Default Linux Binaries",
+            image = "bitboson.registry.jetbrains.space/p/mp/higgs-boson/higgs-boson-project-build-image") {
         shellScript {
             content = """
                 make build
@@ -46,6 +64,7 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
     // Location: /mnt/space/work/dockcross
     git("dockcross") {
         refSpec = "refs/heads/higgs-boson"
+        depth = UNLIMITED_DEPTH
     }
 
     // Construct the Higgs-Boson container for use in future builds

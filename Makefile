@@ -24,6 +24,11 @@ clean:
 	rm -rf .higgs-boson/
 	rm -rf output/
 
+# Build the builder docker container and ssh-into it for easy building
+docker_ssh: clean
+	docker build -f ./docker/Dockerfile -t higgs-boson-project-build-image .
+	docker run -v $(CURDIR):$(CURDIR) -w $(CURDIR) -i -t higgs-boson-project-build-image bash
+
 # Setup the acutal build command (without higgs boson installed)
 build: clean
 	sh build.sh
