@@ -57,7 +57,7 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
     // Build the Default Linux Binaries for the Docker Image
     // Output: /mnt/space/share/higgs-boson
     container(displayName = "Build Default Linux Binaries",
-              image = "bitboson.registry.jetbrains.space/p/build-tools/build-tools/higgs-boson-project-build-image") {
+              image = "bitboson.registry.jetbrains.space/p/build-tools/build-tools/higgs-boson-project-build-image:version1.0") {
         shellScript {
             content = """
                 make build
