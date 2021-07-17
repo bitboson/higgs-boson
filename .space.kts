@@ -28,6 +28,15 @@
 // Build the standard builder container (with C++ tools) for Higgs-Boson
 job("Build the standard builder container for Higgs-Boson to use") {
 
+    // Only run the job if the Dockerfile changes
+    startOn {
+        gitPush {
+            pathFilter {
+                + "docker/Dockerfile"
+            }
+        }
+    }
+
     // Actually construct the container
     docker {
         build {
@@ -36,7 +45,7 @@ job("Build the standard builder container for Higgs-Boson to use") {
             labels["vendor"] = "bitboson"
         }
 
-        push("bitboson.registry.jetbrains.space/p/mp/higgs-boson/higgs-boson-project-build-image") {
+        push(Secrets("build-tools-internal-registry") + "/higgs-boson-project-build-image") {
             tags("version1.0")
         }
     }
@@ -48,7 +57,7 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
     // Build the Default Linux Binaries for the Docker Image
     // Output: /mnt/space/share/higgs-boson
     container(displayName = "Build Default Linux Binaries",
-            image = "bitboson.registry.jetbrains.space/p/mp/higgs-boson/higgs-boson-project-build-image") {
+            image = Secrets("build-tools-internal-registry") + "/higgs-boson-project-build-image") {
         shellScript {
             content = """
                 make build
@@ -75,7 +84,7 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
             labels["vendor"] = "bitboson"
         }
 
-        push("bitboson.registry.jetbrains.space/p/mp/higgs-boson/higgs-boson-builder") {
+        push(Secrets("build-tools-internal-registry") + "/higgs-boson-builder") {
             tags("version1.0")
         }
     }
