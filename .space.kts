@@ -46,7 +46,7 @@ job("Build the standard builder container for Higgs-Boson to use") {
         }
 
         push("bitboson.registry.jetbrains.space/p/build-tools/build-tools/higgs-boson-project-build-image") {
-            tags("version1.0")
+            tags("latest")
         }
     }
 }
