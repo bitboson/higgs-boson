@@ -54,6 +54,13 @@ job("Build the standard builder container for Higgs-Boson to use") {
 // Build the Docker-container for building Higgs-Boson projects
 job("Build Higgs-Boson Default Binaries and Builder container") {
 
+    // Clone Dockcross to use as the build-image
+    // Location: /mnt/space/work/dockcross
+    git("dockcross") {
+        refSpec = "refs/heads/higgs-boson"
+        depth = UNLIMITED_DEPTH
+    }
+
     // Build the Default Linux Binaries for the Docker Image
     // Output: /mnt/space/share/higgs-boson
     container(displayName = "Build Default Linux Binaries",
@@ -65,22 +72,16 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
                 mkdir -p /mnt/space/share/higgs-boson/deps
                 cp output/manual/bin/* /mnt/space/share/higgs-boson/bin/
                 cp output/manual/deps/* /mnt/space/share/higgs-boson/deps/
+                cp /mnt/space/work/dockcross/Dockerfile.higgs-boson.manual /mnt/space/share/higgs-boson/
             """
         }
-    }
-
-    // Clone Dockcross to use as the build-image
-    // Location: /mnt/space/work/dockcross
-    git("dockcross") {
-        refSpec = "refs/heads/higgs-boson"
-        depth = UNLIMITED_DEPTH
     }
 
     // Construct the Higgs-Boson container for use in future builds
     docker {
         build {
             context = "/mnt/space/share/higgs-boson"
-            file = "/mnt/space/work/dockcross/Dockerfile.higgs-boson.manual"
+            file = "/mnt/space/share/higgs-boson/Dockerfile.higgs-boson.manual"
             labels["vendor"] = "bitboson"
         }
 
