@@ -88,7 +88,7 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
         }
 
         push("bitboson.registry.jetbrains.space/p/build-tools/build-tools/higgs-boson-builder") {
-            tags("version1.0")
+            tags("newest")
         }
     }
 }
