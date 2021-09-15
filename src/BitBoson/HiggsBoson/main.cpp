@@ -194,7 +194,7 @@ std::string setupDockerImage(const std::string& target,
 {
 
     // Create a return value
-    std::string retVal = "sh";
+    std::string retVal = "bash";
 
     // Ensure the Dockross project is checked-out
     checkoutDockross(cacheDir);
@@ -213,7 +213,7 @@ std::string setupDockerImage(const std::string& target,
                 + " && chmod +x ./bitboson-higgs-builder");
 
         // Setup the return value accordingly
-        retVal = cacheDir + "/dockcross/bitboson-higgs-builder sh";
+        retVal = cacheDir + "/dockcross/bitboson-higgs-builder bash";
     }
 
     // Handle all other targets accordingly for docross
@@ -224,12 +224,12 @@ std::string setupDockerImage(const std::string& target,
         ExecShell::execWithResponse("Building Docross Docker Image " + target,
                 "cd " + cacheDir + "/dockcross"
                 + std::string(makeDockerContainer ? " && make " + target : "")
-                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --rm -w " + projectDir + " -v "
+                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --interactive --rm -w " + projectDir + " -v "
                     + projectDir + ":" + projectDir + " -t dockcross/" + target + " \"\\$\\@\"\" > ./bitboson-" + target
                 + " && chmod +x ./bitboson-" + target);
 
         // Setup the return value accordingly
-        retVal = cacheDir + "/dockcross/bitboson-" + target + " sh";
+        retVal = cacheDir + "/dockcross/bitboson-" + target + " bash";
     }
 
     // Return the return value
@@ -287,6 +287,7 @@ int main(int argc, char* argv[])
         std::cout << "  debug                         Run the provided/desired tests in debugging mode" << std::endl;
         std::cout << "  coverage                      Run all tests and produce a code-coverage report (including html)" << std::endl;
         std::cout << "  sanitize <type**>             Run the provided/desired code sanitizer for code quality" << std::endl;
+        std::cout << "  cli <target>                  Run an interactive shell on the provided build container" << std::endl;
         std::cout << std::endl;
         std::cout << "*Possible targets depend on each individual project" << std::endl;
         std::cout << "**Test/Sanitize types include: address, behavior, thread, and leak" << std::endl;
@@ -361,6 +362,20 @@ int main(int argc, char* argv[])
 
         // Exit from the execution based on the result
         return (response ? 0 : 1);
+    }
+
+    // Handle cli command (if applicable)
+    if ((argc > 1) && (std::string(argv[1]) == "cli"))
+    {
+
+        // Determine the target we are setting-up (if provided)
+        std::string cliTarget = "higgs-boson";
+        if ((argc <= 2) || ((argc > 2) && (!std::string(argv[2]).empty())))
+            cliTarget = std::string(argv[2]);
+
+        // Simply run the desired interactive docker container
+        return ExecShell::execLive(getRunTypeCommand(cliTarget,
+                currentPath, currentPath + "/.higgs-boson"));
     }
 
     // Assume all commands are run in the default Higgs-Boson docker container
