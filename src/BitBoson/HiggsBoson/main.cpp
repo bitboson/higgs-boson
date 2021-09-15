@@ -168,7 +168,7 @@ bool addOsxBuildSupport(const std::string& xcodeSdkPath,
             + " -v " + osxCrossDir + ":" + osxCrossDir
             + (xcodeSdkPath.empty() ? "" : std::string(" -v" + xcodeSdkPath + ":" + xcodeSdkPath))
             + " -t bitboson/osxcross-pkg \"\\$\\@\"\" > ./osxcross/bitboson-macos"
-            + " && chmod +x ./bitboson-macos"
+            + " && chmod +x ./osxcross/bitboson-macos"
             + " && make osxcross-pkg"
             + " && cd osxcross"
             + " && ./bitboson-macos ./tools/gen_sdk_package_pbzx.sh " + xcodeSdkPath
