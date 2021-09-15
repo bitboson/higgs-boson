@@ -167,9 +167,10 @@ bool addOsxBuildSupport(const std::string& xcodeSdkPath,
             + "&& echo \"docker run --name bitbosonhiggsbuilderprocess --rm -w " + osxCrossDir
             + " -v " + osxCrossDir + ":" + osxCrossDir
             + (xcodeSdkPath.empty() ? "" : std::string(" -v" + xcodeSdkPath + ":" + xcodeSdkPath))
-            + " -t bitboson/osxcross-pkg \"\\$\\@\"\" > ./bitboson-macos"
+            + " -t bitboson/osxcross-pkg \"\\$\\@\"\" > ./osxcross/bitboson-macos"
             + " && chmod +x ./bitboson-macos"
             + " && make osxcross-pkg"
+            + " && cd osxcross"
             + " && ./bitboson-macos ./tools/gen_sdk_package_pbzx.sh " + xcodeSdkPath
             + " && mv MacOSX*.xz ./tarballs");
     }
@@ -364,7 +365,7 @@ int main(int argc, char* argv[])
 
     // Assume all commands are run in the default Higgs-Boson docker container
     // unless otherwise specified
-    if ((argc <= 2) || (std::string(argv[2]) != "internal"))
+    if ((argc <= 2) || ((std::string(argv[1]) != "internal") && (std::string(argv[2]) != "internal")))
         HiggsBoson::RunTypeSingleton::setRunTypeCommand(setupDockerImage("higgs-boson",
                 currentPath, currentPath + "/.higgs-boson"));
 
@@ -462,46 +463,62 @@ int main(int argc, char* argv[])
     // If there is a filter criteria, read it in as well
     // to apply to tests when they are run
     std::string testFilter = "";
-    if ((((argc > 1) && (std::string(argv[1]) == "sanitize"))
+    bool isInternal = (((argc > 2) && (std::string(argv[1]) == "internal"))
+            || ((argc > 3) && (std::string(argv[1]) == "internal")));
+    if (!isInternal && ((((argc > 1) && (std::string(argv[1]) == "sanitize"))
             && (argc > 3) && (!std::string(argv[3]).empty()))
             || ((argc > 1) && (std::string(argv[1]) != "sanitize")
-                && (argc > 2) && (!std::string(argv[2]).empty())))
+                && (argc > 2) && (!std::string(argv[2]).empty()))))
         testFilter = std::string(argv[2]);
+    else if (isInternal && ((((argc > 2) && (std::string(argv[2]) == "sanitize"))
+            && (argc > 4) && (!std::string(argv[4]).empty()))
+            || ((argc > 2) && (std::string(argv[2]) != "sanitize")
+                && (argc > 3) && (!std::string(argv[3]).empty()))))
+        testFilter = std::string(argv[3]);
 
     // Handle test command (if applicable)
-    if ((argc > 1) && (std::string(argv[1]) == "profile"))
+    if (((argc > 1) && (std::string(argv[1]) == "profile"))
+            || (isInternal && (std::string(argv[2]) == "profile")))
         higgsBoson.testProject(CMakeSettings::TestType::PROFILE, testFilter);
 
     // Handle test command (if applicable)
-    if ((argc > 1) && (std::string(argv[1]) == "test"))
+    if (((argc > 1) && (std::string(argv[1]) == "test"))
+            || (isInternal && (std::string(argv[2]) == "test")))
         higgsBoson.testProject(CMakeSettings::TestType::TEST, testFilter);
 
     // Handle debug command (if applicable)
-    if ((argc > 1) && (std::string(argv[1]) == "debug"))
+    if (((argc > 1) && (std::string(argv[1]) == "debug"))
+            || (isInternal && (std::string(argv[2]) == "debug")))
         higgsBoson.testProject(CMakeSettings::TestType::DEBUG, testFilter);
 
     // Handle coverage command (if applicable)
-    if ((argc > 1) && (std::string(argv[1]) == "coverage"))
+    if (((argc > 1) && (std::string(argv[1]) == "coverage"))
+            || (isInternal && (std::string(argv[2]) == "coverage")))
         higgsBoson.testProject(CMakeSettings::TestType::COVERAGE, testFilter);
 
     // Handle sanitize command (if applicable)
-    if ((argc > 1) && (std::string(argv[1]) == "sanitize"))
+    if (((argc > 1) && (std::string(argv[1]) == "sanitize"))
+            || (isInternal && (std::string(argv[2]) == "sanitize")))
     {
 
         // Handle the sanitize address operation (if applicable)
-        if ((argc > 2) && (std::string(argv[2]) == "address"))
+        if (((argc > 2) && (std::string(argv[2]) == "address"))
+                || (isInternal && (std::string(argv[3]) == "address")))
             higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_ADDRESS);
 
         // Handle the sanitize address operation (if applicable)
-        else if ((argc > 2) && (std::string(argv[2]) == "behavior"))
+        else if (((argc > 2) && (std::string(argv[2]) == "behavior"))
+                || (isInternal && (std::string(argv[3]) == "behavior")))
             higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_BEHAVIOR);
 
         // Handle the sanitize address operation (if applicable)
-        else if ((argc > 2) && (std::string(argv[2]) == "thread"))
+        else if (((argc > 2) && (std::string(argv[2]) == "thread"))
+                || (isInternal && (std::string(argv[3]) == "thread")))
             higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_THREAD);
 
         // Handle the sanitize address operation (if applicable)
-        else if ((argc > 2) && (std::string(argv[2]) == "leak"))
+        else if (((argc > 2) && (std::string(argv[2]) == "leak"))
+                || (isInternal && (std::string(argv[3]) == "leak")))
             higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_LEAK);
 
         // Handle the case where no desired sanitizer was selected

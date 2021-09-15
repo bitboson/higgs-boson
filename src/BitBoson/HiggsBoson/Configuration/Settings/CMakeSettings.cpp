@@ -258,7 +258,7 @@ bool CMakeSettings::buildCMakeProject(const std::string& target)
             buildFile << "cd " << _cMakeCacheDir << "/builds/compile/" << target << std::endl;
             buildFile << "cmake";
             if (target == "default")
-                buildFile << " -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++-6.0";
+                buildFile << " -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++";
             buildFile << " -DCMAKE_BUILD_TYPE=Release " << _cMakeCacheDir << std::endl;
             buildFile << std::endl;
 
@@ -371,7 +371,7 @@ bool CMakeSettings::testCMakeProject(TestType testType, const std::string& testF
             testCMakeVarString = "-DSANITIZE_LEAK=1";
             break;
 
-        // Handle the "SANITIZE_LEAK" enumeration case
+        // Handle the "PROFILE" enumeration case
         case PROFILE:
             testTypeString = "profile";
             break;
@@ -402,7 +402,7 @@ bool CMakeSettings::testCMakeProject(TestType testType, const std::string& testF
             buildFile << "# Build Steps for the Test operation " + testTypeString << std::endl;
             buildFile << "mkdir -p " << _cMakeCacheDir << "/builds/" << testTypeString << std::endl;
             buildFile << "cd " << _cMakeCacheDir << "/builds/" << testTypeString << std::endl;
-            buildFile << "cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++-6.0";
+            buildFile << "cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++";
             if (testType == TestType::COVERAGE)
                 buildFile << " -DCODE_COVERAGE=ON ";
             buildFile << " -DCMAKE_BUILD_TYPE=Debug " << _cMakeCacheDir << " " << testCMakeVarString << std::endl;

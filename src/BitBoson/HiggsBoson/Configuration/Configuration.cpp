@@ -147,7 +147,7 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
 
                                 // Define the compiler information for the default target
                                 buildSteps.push_back("CC=/usr/bin/clang");
-                                buildSteps.push_back("CXX=/usr/bin/clang++-6.0");
+                                buildSteps.push_back("CXX=/usr/bin/clang++");
                             }
 
                             // Iterate over the build-steps and collect them in a vector

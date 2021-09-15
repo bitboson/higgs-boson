@@ -162,7 +162,7 @@ TEST_CASE ("External Libraries and Includes CMake Settings Test", "[CMakeSetting
     REQUIRE (!cMakeSettings.buildCMakeProject("default"));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "34bfead676e29d6c9fcc2015030795e3c9ca1d6d1efb89d646fd0a4dd967d1aa";
+    std::string cMakeHash = "46b576bf2aeef96429cb5263021f34b98059d5b090d98607bafbd2c80ba60469";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -193,7 +193,7 @@ TEST_CASE ("Generic Executable CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.buildCMakeProject("default"));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "54cc353ebb3be4dc8e492f3ba52165a47332446d08cf6b2e8e12d417b277ce3f";
+    std::string cMakeHash = "51c34ae63e162f543003afc0fe73f854dd54faade9c1a92a4c10e941a5881252";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -223,7 +223,7 @@ TEST_CASE ("Generic Library CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.buildCMakeProject("default"));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "92a3924034f5317c12e3881170f107d126a29a3dc53e96cddfe661e2109bd690";
+    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -290,7 +290,7 @@ TEST_CASE ("Run Test CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::TEST));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "92a3924034f5317c12e3881170f107d126a29a3dc53e96cddfe661e2109bd690";
+    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -357,7 +357,7 @@ TEST_CASE ("Run Coverage CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::COVERAGE));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "92a3924034f5317c12e3881170f107d126a29a3dc53e96cddfe661e2109bd690";
+    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -388,7 +388,7 @@ TEST_CASE ("Run Sanitize-Address CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_ADDRESS));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "92a3924034f5317c12e3881170f107d126a29a3dc53e96cddfe661e2109bd690";
+    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -419,7 +419,7 @@ TEST_CASE ("Run Sanitize-Behavior CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_BEHAVIOR));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "92a3924034f5317c12e3881170f107d126a29a3dc53e96cddfe661e2109bd690";
+    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -450,7 +450,7 @@ TEST_CASE ("Run Sanitize-Thread CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_THREAD));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "92a3924034f5317c12e3881170f107d126a29a3dc53e96cddfe661e2109bd690";
+    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -481,7 +481,7 @@ TEST_CASE ("Run Sanitize-Leak CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_LEAK));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "92a3924034f5317c12e3881170f107d126a29a3dc53e96cddfe661e2109bd690";
+    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 

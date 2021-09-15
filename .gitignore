@@ -25,6 +25,9 @@
 # Exclude hidden configuration files
 .clang_complete
 
+# Exclude editor/ide related files
+.vscode/
+
 # Exclude build output directories
 output/
 
