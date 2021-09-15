@@ -73,6 +73,7 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
                 mkdir -p /mnt/space/share/higgs-boson/deps
                 cp output/manual/bin/* /mnt/space/share/higgs-boson/bin/
                 cp output/manual/deps/* /mnt/space/share/higgs-boson/deps/
+                cd /mnt/space/work/dockcross/ && git checkout higgs-boson && /mnt/space/share/higgs-boson/
                 cp /mnt/space/work/dockcross/Dockerfile.higgs-boson.manual /mnt/space/share/higgs-boson/
             """
         }
@@ -87,7 +88,7 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
         }
 
         push("bitboson.registry.jetbrains.space/p/build-tools/build-tools/higgs-boson-builder") {
-            tags("version1.0")
+            tags("newest")
         }
     }
 }
