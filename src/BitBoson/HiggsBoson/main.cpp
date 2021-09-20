@@ -139,7 +139,7 @@ bool addOsxBuildSupport(const std::string& xcodeSdkPath,
 {
 
     // Create a return flag
-    bool retFlag = false;
+    bool retFlag = true;
 
     // Ensure the Dockross project is checked-out
     checkoutDockross(cacheDir);
