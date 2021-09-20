@@ -150,7 +150,7 @@ bool addOsxBuildSupport(const std::string& xcodeSdkPath,
     {
 
         // Package the SDK locally
-        retFlag = ExecShell::execWithResponse("Packaging Local XCode SDK",
+        ExecShell::execWithResponse("Packaging Local XCode SDK",
             "cd " + cacheDir + "/dockcross/osxcross && "
             + "./tools/gen_sdk_package.sh && mv MacOSX*.xz ./tarballs");
     }
@@ -162,7 +162,7 @@ bool addOsxBuildSupport(const std::string& xcodeSdkPath,
 
         // Package SDK from the provided XCode file
         std::string osxCrossDir = cacheDir + "/dockcross/osxcross";
-        retFlag = ExecShell::execWithResponse("Packaging Provided XCode SDK",
+        ExecShell::execWithResponse("Packaging Provided XCode SDK",
             "cd " + cacheDir + "/dockcross "
             + "&& echo \"docker run --name bitbosonhiggsbuilderprocess --rm -w " + osxCrossDir
             + " -v " + osxCrossDir + ":" + osxCrossDir
