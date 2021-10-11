@@ -81,7 +81,6 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
                 cp output/manual/deps/* /mnt/space/share/higgs-boson/deps/
                 cd /mnt/space/work/dockcross/ && git checkout higgs-boson && /mnt/space/share/higgs-boson/
                 cp /mnt/space/work/dockcross/Dockerfile.higgs-boson.manual /mnt/space/share/higgs-boson/
-                mkdir -p /scripts && cp -r /mnt/space/work/ci-images/scripts/* /scripts/
             """
         }
     }
