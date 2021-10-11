@@ -162,6 +162,7 @@ bool HiggsBoson::buildProject(const std::string& target)
             retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/bin").c_str()) == 0);
             retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/lib").c_str()) == 0);
             retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/deps").c_str()) == 0);
+            retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/pkg").c_str()) == 0);
 
             // Copy the output file for the project into the appropriate directory
             std::string cMakeOutputDir = _cacheDir + "/builds/compile/" + target;
@@ -174,6 +175,14 @@ bool HiggsBoson::buildProject(const std::string& target)
             for (const auto& dependency : _configuration->getDependencies())
                 for (const auto& libraryFile : Utils::listFilesInDirectory(targetCacheDir + "/" + dependency->getName()))
                     retFlag &= (system(std::string("cp " + libraryFile + " " + targetOutputDir + "/deps/").c_str()) == 0);
+
+            // Compress the output files into the corresponding higgs-boson tar/package file
+            std::string projectName = _configuration->getProjectSettings()->getProjectName();
+            std::string projectVersion = _configuration->getProjectSettings()->getProjectVersion();
+            std::string pkgName = projectName + "-" + projectVersion + "-" + target + ".hbsn";
+            system(std::string("mkdir -p " + _cacheDir + "/pkg").c_str());
+            system(std::string("cd " + targetOutputDir + " && tar -c -f " + _cacheDir + "/" + pkgName + " .").c_str());
+            system(std::string("mv " + _cacheDir + "/" + pkgName + " " + targetOutputDir + "/pkg").c_str());
         }
     }
 
