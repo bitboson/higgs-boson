@@ -62,12 +62,6 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
         depth = UNLIMITED_DEPTH
     }
 
-    // Clone the helper scripts for additional CI/CD capabilities
-    // Location: /mnt/space/work/ci-images
-    git("ci-images") {
-        cloneDir = "ci-images"
-    }
-
     // Build the Default Linux Binaries for the Docker Image
     // Output: /mnt/space/share/higgs-boson
     container(displayName = "Build Default Linux Binaries",
@@ -81,7 +75,6 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
                 cp output/manual/deps/* /mnt/space/share/higgs-boson/deps/
                 cd /mnt/space/work/dockcross/ && git checkout higgs-boson && /mnt/space/share/higgs-boson/
                 cp /mnt/space/work/dockcross/Dockerfile.higgs-boson.manual /mnt/space/share/higgs-boson/
-                mkdir -p /scripts && cp -r /mnt/space/work/ci-images/scripts/* /scripts/
             """
         }
     }
