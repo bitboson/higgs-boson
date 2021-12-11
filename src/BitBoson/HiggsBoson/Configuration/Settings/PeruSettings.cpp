@@ -190,6 +190,10 @@ bool PeruSettings::writePeruFile()
         peruFile << " catch2higgsboson: catch2higgsboson" <<std::endl;
         peruFile << std::endl << std::endl;
 
+        // Write-in the plibsys integration for use with Peru
+        peruFile << " plibsyshiggsboson: plibsyshiggsboson" <<std::endl;
+        peruFile << std::endl << std::endl;
+
         // Write-in the individual modules sections of the Peru file
         peruFile << "#" << std::endl;
         peruFile << "# peru module information" << std::endl;
@@ -211,6 +215,12 @@ bool PeruSettings::writePeruFile()
         peruFile << "git module catch2higgsboson:" << std::endl;
         peruFile << " rev: v2.12.4" << std::endl;
         peruFile << " url: https://github.com/bitboson-deps/Catch2.git" << std::endl;
+
+        // Write-in the plibsys library download
+        peruFile << "# Setup the import for catch2 integration" << std::endl;
+        peruFile << "git module plibsyshiggsboson:" << std::endl;
+        peruFile << " rev: 0.0.4" << std::endl;
+        peruFile << " url: https://github.com/saprykin/plibsys.git" << std::endl;
 
         // Close the Peru file
         peruFile.close();

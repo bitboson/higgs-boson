@@ -19,8 +19,11 @@
  *     - Tyler Parcell <OriginLegend>
  */
 
+#include <map>
+#include <string>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
+#include <BitBoson/HiggsBoson/Utils/Constants.h>
 #include <BitBoson/HiggsBoson/Configuration/Configuration.h>
 #include <BitBoson/HiggsBoson/Configuration/Dependencies/ManualDependency.h>
 #include <BitBoson/HiggsBoson/Configuration/Dependencies/HiggsBosonDependency.h>
@@ -151,10 +154,11 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
                             }
 
                             // Iterate over the build-steps and collect them in a vector
-                            auto buildStepsYaml = depsYaml["target " + target]["build"];
+                            auto buildStepsYaml = getConfigurationForTarget(depsYaml, target)["build"];
                             if (buildStepsYaml.Size() > 0)
                                 for(auto stepIter = buildStepsYaml.Begin(); stepIter != buildStepsYaml.End(); stepIter++)
-                                    buildSteps.push_back((*stepIter).second.As<std::string>());
+                                    buildSteps.push_back(
+                                            substituteBuildVariables(target, (*stepIter).second.As<std::string>()));
 
                             // If there were no targets matching the provided one,
                             // then we can try to search for and add an any-target
@@ -166,7 +170,7 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
                                 if (buildStepsYaml.Size() > 0)
                                     for(auto stepIter = buildStepsYaml.Begin(); stepIter != buildStepsYaml.End(); stepIter++)
                                         buildSteps.push_back(
-                                                substituteLibraryExtension(target, (*stepIter).second.As<std::string>()));
+                                                substituteBuildVariables(target, (*stepIter).second.As<std::string>()));
                             }
 
                             // Add the build steps to the individual target
@@ -174,16 +178,18 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
 
                             // Save the corresponding output directory information for both
                             // libraries and header files for later compilation use
-                            auto libOutputPathsYaml = depsYaml["target " + target]["libs"];
+                            auto libOutputPathsYaml = getConfigurationForTarget(depsYaml, target)["libs"];
                             if (libOutputPathsYaml.Size() > 0)
                                 for(auto libPathIter = libOutputPathsYaml.Begin();
                                         libPathIter != libOutputPathsYaml.End(); libPathIter++)
-                                    _outputLibsMap[depName][target].push_back((*libPathIter).second.As<std::string>());
-                            auto headerOutputPathsYaml = depsYaml["target " + target]["include"];
+                                    _outputLibsMap[depName][target].push_back(
+                                            substituteBuildVariables(target, (*libPathIter).second.As<std::string>()));
+                            auto headerOutputPathsYaml = getConfigurationForTarget(depsYaml, target)["include"];
                             if (headerOutputPathsYaml.Size() > 0)
                                 for(auto headerPathIter = headerOutputPathsYaml.Begin();
                                         headerPathIter != headerOutputPathsYaml.End(); headerPathIter++)
-                                    _outputHeadersMap[depName][target].push_back((*headerPathIter).second.As<std::string>());
+                                    _outputHeadersMap[depName][target].push_back(
+                                            substituteBuildVariables(target, (*headerPathIter).second.As<std::string>()));
 
                             // If we failed (again) to get target-specific libraries
                             // and header files, then use the any-target once again
@@ -196,14 +202,15 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
                                     for(auto libPathIter = libOutputPathsYaml.Begin();
                                             libPathIter != libOutputPathsYaml.End(); libPathIter++)
                                         _outputLibsMap[depName][target].push_back(
-                                                substituteLibraryExtension(target, (*libPathIter).second.As<std::string>()));
+                                                substituteBuildVariables(target, (*libPathIter).second.As<std::string>()));
 
                                 // Get the any-target header files
                                 headerOutputPathsYaml = depsYaml["target any"]["include"];
                                 if (headerOutputPathsYaml.Size() > 0)
                                     for(auto headerPathIter = headerOutputPathsYaml.Begin();
                                             headerPathIter != headerOutputPathsYaml.End(); headerPathIter++)
-                                        _outputHeadersMap[depName][target].push_back((*headerPathIter).second.As<std::string>());
+                                        _outputHeadersMap[depName][target].push_back(
+                                                substituteBuildVariables(target, (*headerPathIter).second.As<std::string>()));
                             }
 
                             // If no header files were found for the target, add the default ones
@@ -412,35 +419,67 @@ std::string Configuration::getLibExtensionForTarget(const std::string& target)
 }
 
 /**
- * Internal function used to replace the library extension substring
+ * Internal function used to replace any build-variables for YAML file
  *
- * @param target String representing the target to get the extension for
+ * @param target String representing the target to reference in the replacement
  * @param textToUse String representing the text to do the replacement in
- * @return String representing the input text with the replaced extension
+ * @return String representing the input text with the replaced build-variables
  */
-std::string Configuration::substituteLibraryExtension(const std::string& target,
+std::string Configuration::substituteBuildVariables(const std::string& target,
         const std::string& textToUse)
 {
 
     // Create a copy of the input string for modification
     std::string retString = textToUse;
 
-    // Get the extension for substitution based on the provided target
-    std::string varExt = "${LIB_EXT}";
-    auto libExt = getLibExtensionForTarget(target);
+    // Create a mapping of values to be replaced
+    std::map<std::string, std::string> replacementMap;
+    replacementMap["${TARGET_TRIPLE}"] = target;
+    replacementMap["${LIB_EXT}"] = getLibExtensionForTarget(target);
 
-    // Find the text to be replaced and continuously replace it
-    size_t startPos = 0;
-    while ((startPos = retString.find(varExt, startPos)) != std::string::npos)
-    {
+    // Replace each variable in the line at a time
+    for (const auto& replacementItem : replacementMap) {
 
-        // Perform the actual replacement on the input string
-        retString.replace(startPos, varExt.length(), libExt);
+        // Find the text to be replaced and continuously replace it
+        size_t startPos = 0;
+        while ((startPos = retString.find(replacementItem.first, startPos)) != std::string::npos) {
 
-        // Update the start position for the next iteration
-        startPos += libExt.length();
+            // Perform the actual replacement on the input string
+            retString.replace(startPos, replacementItem.first.length(), replacementItem.second);
+
+            // Update the start position for the next iteration
+            startPos += replacementItem.second.length();
+        }
     }
 
     // Return the modified string
     return retString;
+}
+
+/**
+ * Internal function used to get the configuration for a target
+ * NOTE: This will attempt to adapt target-triples to OS if needed
+ *
+ * @param yamlConfig YAML Node representing the configuration to source from
+ * @param target String representing the target to get the configuration for
+ * @return YAML Node representing the desired target-specific configuration
+ */
+Yaml::Node Configuration::getConfigurationForTarget(Yaml::Node& yamlConfig, const std::string& target)
+{
+
+    // Create a return node
+    Yaml::Node returnNode;
+
+    // First attempt to get the target-based node directly
+    returnNode = yamlConfig["target " + target];
+
+    // If the node is still empty we need to try the os-level
+    // TODO - Define these mappings somewhere else
+    if (returnNode.Size() == 0) {
+        auto osTargetName = Constants::getTargetOsForImageTriple(target);
+        returnNode = yamlConfig["target " + osTargetName];
+    }
+
+    // Return the return node
+    return returnNode;
 }

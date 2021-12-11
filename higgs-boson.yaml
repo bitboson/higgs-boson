@@ -43,8 +43,21 @@ dependencies:
     type: manual
     target any:
       build:
-        - ${CXX} -std=c++11 -fPIC -shared yaml/Yaml.cpp -o libminiyaml.${LIB_EXT}
+        - ${CXX} -std=c++17 -stdlib=libstdc++ -fPIC -shared yaml/Yaml.cpp -o libminiyaml.${LIB_EXT}
       libs:
         - libminiyaml.${LIB_EXT}
       include:
         - yaml
+
+  # Setup the external dependency: PicoSHA2
+  - name: picosha2
+    source: git
+    url: git://github.com/bitboson-deps/picosha2.git
+    rev: b699e6c900be6e00152db5a3d123c1db42ea13d0
+    type: manual
+    target any:
+      build:
+        - mkdir -p output-headers/picosha2
+        - cp picosha2.h output-headers/picosha2
+      include:
+        - output-headers/picosha2

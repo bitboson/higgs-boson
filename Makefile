@@ -29,7 +29,7 @@ docker_ssh: clean
 	docker build -f ./docker/Dockerfile -t higgs-boson-project-build-image .
 	docker run -v $(CURDIR):$(CURDIR) -w $(CURDIR) -i -t higgs-boson-project-build-image bash
 
-# Setup the acutal build command (without higgs boson installed)
+# Setup the actual build command (without higgs-boson installed)
 build: clean
 	sh build.sh
 

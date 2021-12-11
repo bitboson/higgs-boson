@@ -30,14 +30,21 @@ cd $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/external/raw
 
 # Clone the external dependencies into the corresponding directory
 git clone git://github.com/bitboson-deps/mini-yaml.git
+git clone git://github.com/bitboson-deps/picosha2.git
 
 # Build the mini-yaml dependency and copy the artifacts
 cd $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/external/raw/mini-yaml
 mkdir -p $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/output/manual/miniyaml
 rm -rf ./higgs-boson_default_headers && mkdir -p ./higgs-boson_default_headers
-clang++ -std=c++11 -fPIC -shared yaml/Yaml.cpp -o libminiyaml.so
+clang++ -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++17 -stdlib=libstdc++ -fPIC -shared yaml/Yaml.cpp -o libminiyaml.so
 cp -r ./libminiyaml.so $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/output/manual/miniyaml/
 cp -r ./yaml ./higgs-boson_default_headers
+
+# Build the picosha2 dependency and copy the artifacts
+cd $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/external/raw/picosha2
+mkdir -p $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/output/manual/picosha2
+rm -rf ./higgs-boson_default_headers && mkdir -p ./higgs-boson_default_headers/picosha2
+cp -r ./picosha2.h ./higgs-boson_default_headers/picosha2
 
 # Build Steps for the Compile operation for target default
 mkdir -p $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/builds/manual

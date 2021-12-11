@@ -133,14 +133,24 @@ namespace BitBoson
         private:
 
             /**
-             * Internal function used to replace the library extension substring
+             * Internal function used to replace any build-variables for YAML file
              *
-             * @param target String representing the target to get the extension for
+             * @param target String representing the target to reference in the replacement
              * @param textToUse String representing the text to do the replacement in
-             * @return String representing the input text with the replaced extension
+             * @return String representing the input text with the replaced build-variables
              */
-            std::string substituteLibraryExtension(const std::string& target,
+            std::string substituteBuildVariables(const std::string& target,
                     const std::string& textToUse);
+
+            /**
+             * Internal function used to get the configuration for a target
+             * NOTE: This will attempt to adapt target-triples to OS if needed
+             *
+             * @param yamlConfig YAML Node representing the configuration to source from
+             * @param target String representing the target to get the configuration for
+             * @return YAML Node representing the desired target-specific configuration
+             */
+            Yaml::Node getConfigurationForTarget(Yaml::Node& yamlConfig, const std::string& target);
     };
 }
 

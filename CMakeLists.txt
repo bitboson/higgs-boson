@@ -24,6 +24,7 @@ cmake_minimum_required(VERSION 3.0.0)
 
 # Set C++17 standard
 set(CMAKE_CXX_STANDARD 17)
+add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=0)
 
 # Higgs Build Variables
 set(HIGGS_PROJECT_NAME "higgs-boson")
@@ -46,6 +47,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Setup the project version
 set(VERSION "${HIGGS_PROJECT_VERSION}")
 
+# Setup the manual directory reference
+if(DEFINED ENV{HIGGS_BOSON_MANUAL_DIR})
+    MESSAGE(STATUS "Setting Source directory from environment variables: $ENV{HIGGS_BOSON_MANUAL_DIR}")
+    set(HIGGS_BOSON_MANUAL_DIR $ENV{HIGGS_BOSON_MANUAL_DIR})
+else()
+    MESSAGE(STATUS "Setting Source directory to default cmake value: ${PROJECT_SOURCE_DIR}")
+    set(HIGGS_BOSON_MANUAL_DIR ${PROJECT_SOURCE_DIR})
+endif()
+
 # Setup the hard-coded source directory
 set(CMAKE_SOURCE_DIR ${HIGGS_PROJECT_SRC})
 set(CMAKE_CURRENT_SOURCE_DIR ${HIGGS_PROJECT_SRC})
@@ -59,6 +69,7 @@ set(CMAKE_CURRENT_SOURCE_DIR ${HIGGS_PROJECT_SRC})
 # Add the include directories
 set(HIGGS_EXTERNAL_INCLUDES
     "${HIGGS_BOSON_MANUAL_DIR}/.higgs-boson/external/raw/mini-yaml/higgs-boson_default_headers"
+    "${HIGGS_BOSON_MANUAL_DIR}/.higgs-boson/external/raw/picosha2/higgs-boson_default_headers"
 )
 
 # Setup the library and linker information
@@ -84,6 +95,7 @@ set(${PROJECT_TARGET_MAIN}_headers
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/HiggsBoson.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/PeruSettings.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/ExecShell.h"
+        "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/Constants.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/CMakeSettings.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Dependencies/ManualDependency.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/ProjectSettings.h"
@@ -96,6 +108,7 @@ set(${PROJECT_TARGET_MAIN}_headers
 set(${PROJECT_TARGET_MAIN}_sources
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/HiggsBoson.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/ExecShell.cpp"
+        "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/Constants.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/ProjectSettings.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/CMakeSettings.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Dependencies/ManualDependency.cpp"

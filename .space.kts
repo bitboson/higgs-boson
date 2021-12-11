@@ -92,3 +92,15 @@ job("Build Higgs-Boson Default Binaries and Builder container") {
         }
     }
 }
+
+// Build Linux x86 target for Higgs-Boson project
+job("Build Linux x86 target for Higgs-Boson project") {
+    container(displayName = "Build Linux x86 target for Higgs-Boson project",
+              image = "bitboson.registry.jetbrains.space/p/build-tools/build-tools/ci-higgs-boson-builder:latest") {
+        shellScript {
+            content = """
+
+            """
+        }
+    }
+}

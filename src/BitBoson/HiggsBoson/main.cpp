@@ -25,6 +25,7 @@
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
+#include <BitBoson/HiggsBoson/Utils/Constants.h>
 
 using namespace BitBoson;
 
@@ -44,50 +45,6 @@ void handleInterrupt(int signal)
 }
 
 /**
- * Function used to get a list (vector) of valid image targets
- *
- * @return Vector of Strings representing the valid images available
- */
-std::vector<std::string> getValidImages()
-{
-
-    // Return the list (vector) of valid images
-    return {
-            "android-arm",
-            "android-arm64",
-            "linux-arm64",
-            "linux-armv5-musl",
-            "linux-armv5",
-            "linux-armv6",
-            "linux-armv7",
-            "linux-armv7a",
-            "linux-mips",
-            "linux-mipsel",
-            "linux-ppc64le",
-            "linux-s390x",
-            "linux-x64",
-            "linux-x86",
-            "manylinux-common",
-            "manylinux1-x64",
-            "manylinux1-x86",
-            "manylinux2010-x64",
-            "manylinux2010-x86",
-            "manylinux2014-aarch64",
-            "manylinux2014-x64",
-            "manylinux2014-x86",
-            "web-wasm",
-            "windows-shared-x64-posix",
-            "windows-shared-x64",
-            "windows-shared-x86",
-            "windows-static-x64-posix",
-            "windows-static-x64",
-            "windows-static-x86",
-            "x86_64-apple-darwin",
-            "i386-apple-darwin",
-        };
-}
-
-/**
  * Function used to check if the given image name is valid for Dockcross
  *
  * @param image String representing the image name to validate
@@ -100,7 +57,7 @@ bool isValidDockcrossImage(const std::string& image)
     bool retFlag = false;
 
     // Check if the image is in the list of valid ones
-    for (const auto& validImage : getValidImages())
+    for (const auto& validImage : Constants::getValidImages())
         if (image == validImage)
             retFlag = true;
 
@@ -184,20 +141,21 @@ bool addOsxBuildSupport(const std::string& xcodeSdkPath,
  *
  * @param target String representing the target to use
  * @param projectDir String representing the project directory to use
- * @param cacheDir String representing the cache directory to use
+ * @param globalCacheDir String representing the cache directory to use
+ * @param localCacheDir String representing the local cache directory to use
  * @param makeDockerContainer Boolean indicating whether to build the container
  * @return String representing the run command to use
  */
 std::string setupDockerImage(const std::string& target,
-        const std::string& projectDir, const std::string& cacheDir,
-        bool makeDockerContainer=true)
+        const std::string& projectDir, const std::string& globalCacheDir,
+        const std::string& localCacheDir, bool makeDockerContainer=true)
 {
 
     // Create a return value
     std::string retVal = "bash";
 
     // Ensure the Dockross project is checked-out
-    checkoutDockross(cacheDir);
+    checkoutDockross(globalCacheDir);
 
     // Handle the higgs-boson target specifically
     if (target == "higgs-boson")
@@ -205,15 +163,17 @@ std::string setupDockerImage(const std::string& target,
 
         // Build the docker image and setup the executable
         ExecShell::execWithResponse("Building Higgs-Boson Docker Image",
-                "cd " + cacheDir + "/dockcross"
+                "cd " + globalCacheDir + "/dockcross"
                 + std::string(makeDockerContainer ? " && make higgs-boson" : "")
                 + " && echo \"docker run --name bitbosonhiggsbuilderprocess --interactive --rm -w " + projectDir
-                    + " --mount type=tmpfs,destination=/ramdisk " + " -v "
-                    + projectDir + ":" + projectDir + " -t bitboson/higgs-builder \"\\$\\@\"\" > ./bitboson-higgs-builder"
+                    + " --mount type=tmpfs,destination=/ramdisk "
+                    + " -v " + localCacheDir + ":" + localCacheDir
+                    + " -v " + projectDir + ":" + projectDir
+                    + " -t bitboson/higgs-builder \"\\$\\@\"\" > ./bitboson-higgs-builder"
                 + " && chmod +x ./bitboson-higgs-builder");
 
         // Setup the return value accordingly
-        retVal = cacheDir + "/dockcross/bitboson-higgs-builder bash";
+        retVal = globalCacheDir + "/dockcross/bitboson-higgs-builder bash";
     }
 
     // Handle all other targets accordingly for docross
@@ -222,14 +182,16 @@ std::string setupDockerImage(const std::string& target,
 
         // Build the docker image and setup the executable
         ExecShell::execWithResponse("Building Docross Docker Image " + target,
-                "cd " + cacheDir + "/dockcross"
+                "cd " + globalCacheDir + "/dockcross"
                 + std::string(makeDockerContainer ? " && make " + target : "")
-                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --interactive --rm -w " + projectDir + " -v "
-                    + projectDir + ":" + projectDir + " -t dockcross/" + target + " \"\\$\\@\"\" > ./bitboson-" + target
+                + " && echo \"docker run --name bitbosonhiggsbuilderprocess --interactive --rm -w " + projectDir
+                + " -v " + localCacheDir + ":" + localCacheDir
+                + " -v " + projectDir + ":" + projectDir
+                + " -t dockcross/" + target + " \"\\$\\@\"\" > ./bitboson-" + target
                 + " && chmod +x ./bitboson-" + target);
 
         // Setup the return value accordingly
-        retVal = cacheDir + "/dockcross/bitboson-" + target + " bash";
+        retVal = globalCacheDir + "/dockcross/bitboson-" + target + " bash";
     }
 
     // Return the return value
@@ -241,16 +203,18 @@ std::string setupDockerImage(const std::string& target,
  *
  * @param target String representing the target to use
  * @param projectDir String representing the project directory to use
- * @param cacheDir String representing the cache directory to use
+ * @param globalCacheDir String representing the cache directory to use
+ * @param localCacheDir String representing the local cache directory to use
  * @return String representing the run command to use
  */
 std::string getRunTypeCommand(const std::string& target,
-        const std::string& projectDir, const std::string& cacheDir)
+        const std::string& projectDir, const std::string& globalCacheDir,
+        const std::string& localCacheDir)
 {
 
     // Setup the shell file for running the docker container
     // and return the run-type command for the docker container
-    return setupDockerImage(target, projectDir, cacheDir, false);
+    return setupDockerImage(target, projectDir, globalCacheDir, localCacheDir, false);
 }
 
 /**
@@ -296,19 +260,32 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    // Get the current path for the running instace
+    // Get the current path for the running instance
     auto currentPath = Utils::splitStringByDelimiter(ExecShell::exec("pwd"), '\n').front();
+
+    // Deduce a unique hash which represents this project's path on disk
+    auto projectDirHash = Utils::sha256(currentPath);
+
+    // Define the cache directory to live in the user's home-path
+    // If this does not exist we can define it to exist locally
+    std::string userHomePath = Utils::getHomePath();
+    if (!userHomePath.empty() && ((userHomePath.back() == '/') || (userHomePath.back() == '\\')))
+        userHomePath.pop_back();
+    std::string appCacheDir = (currentPath + "/.higgs-boson");
+    std::string globalCacheDir = (userHomePath.empty()
+            ? (currentPath + "/.higgs-boson")
+            : (userHomePath + "/.higgs-boson"));
 
     // Setup the Higgs-Boson configuration for the instance
     auto higgsBoson = HiggsBoson(currentPath,
-            currentPath + "/higgs-boson.yaml", currentPath + "/.higgs-boson");
+            currentPath + "/higgs-boson.yaml", appCacheDir);
 
     // Handle list-targets command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "list-targets"))
     {
 
         // Simply get and list all possible image targets
-        for (const auto& imageTarget : getValidImages())
+        for (const auto& imageTarget : Constants::getValidImages())
             std::cout << imageTarget << std::endl;
 
         // Return zero to exit early
@@ -347,16 +324,14 @@ int main(int argc, char* argv[])
                 // Attempt to actually setup the OSX cross-build support
                 if (buildingLocally || !xcodeFile.empty())
                     handledOsxTarget = addOsxBuildSupport(xcodeFile,
-                            currentPath, currentPath + "/.higgs-boson",
-                            buildingLocally);
+                            currentPath, globalCacheDir, buildingLocally);
                 else
                     handledOsxTarget = true;
             }
 
             // Attempt to build the actual docker image itself
             if (handledOsxTarget)
-                response = (setupDockerImage(setupTarget, currentPath,
-                        currentPath + "/.higgs-boson") != "sh");
+                response = (setupDockerImage(setupTarget, currentPath, globalCacheDir, appCacheDir) != "sh");
 
         }
 
@@ -375,14 +350,14 @@ int main(int argc, char* argv[])
 
         // Simply run the desired interactive docker container
         return ExecShell::execLive(getRunTypeCommand(cliTarget,
-                currentPath, currentPath + "/.higgs-boson"));
+                currentPath, globalCacheDir, appCacheDir));
     }
 
     // Assume all commands are run in the default Higgs-Boson docker container
     // unless otherwise specified
     if ((argc <= 2) || ((std::string(argv[1]) != "internal") && (std::string(argv[2]) != "internal")))
         HiggsBoson::RunTypeSingleton::setRunTypeCommand(setupDockerImage("higgs-boson",
-                currentPath, currentPath + "/.higgs-boson"));
+                currentPath, globalCacheDir, appCacheDir));
 
     // Handle download command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "download"))
@@ -436,7 +411,7 @@ int main(int argc, char* argv[])
         {
             HiggsBoson::RunTypeSingleton::setRunTypeCommand(
                     getRunTypeCommand(std::string(argv[2]),
-                            currentPath, currentPath + "/.higgs-boson"));
+                            currentPath, globalCacheDir, appCacheDir));
             higgsBoson.buildDependencies(std::string(argv[2]));
         }
     }
@@ -470,7 +445,7 @@ int main(int argc, char* argv[])
         {
             HiggsBoson::RunTypeSingleton::setRunTypeCommand(
                     getRunTypeCommand(std::string(argv[2]),
-                            currentPath, currentPath + "/.higgs-boson"));
+                            currentPath, globalCacheDir, appCacheDir));
             higgsBoson.buildProject(std::string(argv[2]));
         }
     }

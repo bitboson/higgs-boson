@@ -22,6 +22,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <stdlib.h>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Configuration/Settings/CMakeSettings.h>
@@ -618,10 +619,78 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile << "set(VERSION \"${HIGGS_PROJECT_VERSION}\")" << std::endl;
             cMakeFile << std::endl;
 
+            // Setup toolchain CMAKE variables based on environment variables (if present)
+            cMakeFile << "# Setup toolchain CMAKE variables based on environment variables (if present)" << std::endl;
+            cMakeFile << "if(DEFINED ENV{CC})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"C Compiler Set To: $ENV{CC}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{CXX})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"C++ Compiler Set To: $ENV{CXX}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{CPP})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"CPP Compiler Set To: $ENV{CPP}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{AS})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Assembler Set To: $ENV{AS}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{AR})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Archiver Set To: $ENV{AR}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{LD})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Linker Set To: $ENV{LD}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{FC})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Fortran Compiler Set To: $ENV{FC}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+
+            // Setup default environment variables for cross-building
+            // TODO - Inject default value based on target OS for higgs-boson project itself
+            cMakeFile << "# Setup default environment variables for cross-building" << std::endl;
+            cMakeFile << "if(DEFINED ENV{HIGGS_BOSON_TARGET_OS})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Target OS Set To: $ENV{HIGGS_BOSON_TARGET_OS}\")" << std::endl;
+            cMakeFile << "else()" << std::endl;
+            cMakeFile << "    set(ENV{HIGGS_BOSON_TARGET_OS} linux)" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Target OS Set To: $ENV{HIGGS_BOSON_TARGET_OS}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{HIGGS_BOSON_TARGET_PLATFORM})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Target Platform Set To: $ENV{HIGGS_BOSON_TARGET_PLATFORM}\")" << std::endl;
+            cMakeFile << "else()" << std::endl;
+            cMakeFile << "    set(ENV{HIGGS_BOSON_TARGET_PLATFORM} linux-clang)" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Target Platform Set To: $ENV{HIGGS_BOSON_TARGET_PLATFORM}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << "if(DEFINED ENV{HIGGS_BOSON_TARGET_ARCH})" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Target Architecture Set To: $ENV{HIGGS_BOSON_TARGET_ARCH}\")" << std::endl;
+            cMakeFile << "else()" << std::endl;
+            cMakeFile << "    set(ENV{HIGGS_BOSON_TARGET_ARCH} x86_64)" << std::endl;
+            cMakeFile << "    MESSAGE(STATUS \"Target Architecture Set To: $ENV{HIGGS_BOSON_TARGET_ARCH}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << std::endl;
+
             // Write-in the CMake source directories
             cMakeFile << "# Setup the hard-coded source directory" << std::endl;
             cMakeFile << "set(CMAKE_SOURCE_DIR ${HIGGS_PROJECT_SRC})" << std::endl;
             cMakeFile << "set(CMAKE_CURRENT_SOURCE_DIR ${HIGGS_PROJECT_SRC})" << std::endl;
+            cMakeFile << std::endl << std::endl;
+
+            // Write-in the CMake external dependencies section
+            cMakeFile << "#" << std::endl;
+            cMakeFile << "#" << std::endl;
+            cMakeFile << "# Setup Internal (required) dependencies" << std::endl;
+            cMakeFile << "#" << std::endl;
+            cMakeFile << std::endl;
+
+            // Write-in support for plibsys to handle platform specific things
+            cMakeFile << "# Add plibsys specific build parameters" << std::endl;
+            cMakeFile << "set(CMAKE_BUILD_TYPE, \"Release\")" << std::endl;
+            cMakeFile << "set(PLIBSYS_BUILD_STATIC, \"OFF\")" << std::endl;
+            cMakeFile << "set(CMAKE_C_COMPILER_ID, \"GNU\")" << std::endl;
+            cMakeFile << "set(PLIBSYS_TARGET_OS, \"$ENV{HIGGS_BOSON_TARGET_OS}\")" << std::endl;
+            cMakeFile << "set(PLIBSYS_TARGET_PLATFORM, \"$ENV{HIGGS_BOSON_TARGET_PLATFORM}\")" << std::endl;
+            cMakeFile << "set(CMAKE_SYSTEM_PROCESSOR, \"$ENV{HIGGS_BOSON_TARGET_ARCH}\")" << std::endl;
+            cMakeFile << "add_subdirectory (${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson)" << std::endl;
+            cMakeFile << "include (${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson/platforms/$ENV{HIGGS_BOSON_TARGET_PLATFORM}/platform.cmake)" << std::endl;
+            cMakeFile << "include (${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson/cmake/PlatformDetect.cmake)" << std::endl;
+            cMakeFile << "plibsys_detect_target_os ($ENV{HIGGS_BOSON_TARGET_PLATFORM})" << std::endl;
             cMakeFile << std::endl << std::endl;
 
             // Write-in the CMake external dependencies section
@@ -634,6 +703,8 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             // Write-in the CMake External includes files
             cMakeFile << "# Add the include directories" << std::endl;
             cMakeFile << "set(HIGGS_EXTERNAL_INCLUDES" << std::endl;
+            cMakeFile << "    ${CMAKE_BINARY_DIR}" << std::endl;
+            cMakeFile << "    \"${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson/src\"" << std::endl;
             cMakeFile << "    \"${HIGGS_PROJECT_CACHE}/external/raw/catch2higgsboson/single_include/catch2\"" << std::endl;
             for (const auto& item : _externalIncludes)
                 cMakeFile << "    \"" << item << "\"" << std::endl;
@@ -646,12 +717,6 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             for (auto libIndex = _externalLibraries.size(); libIndex > 0; libIndex--)
                 cMakeFile << "    \"" << _externalLibraries[libIndex - 1] << "\"" << std::endl;
             cMakeFile << ")" << std::endl;
-            cMakeFile << std::endl;
-
-            // Write-in the CMake threading support
-            cMakeFile << "# Add threading to the build process" << std::endl;
-            cMakeFile << "find_package(Threads)" << std::endl;
-            cMakeFile << "SET(CMAKE_CXX_FLAGS \"-pthread\")" << std::endl;
             cMakeFile << std::endl;
 
             // Write-in the CMake LLVM coverage information
@@ -771,7 +836,10 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             else
                 cMakeFile << "add_executable(${PROJECT_TARGET_MAIN} " << mainSourceFile << std::endl;
             cMakeFile << "        ${${PROJECT_TARGET_MAIN}_sources} ${${PROJECT_TARGET_MAIN}_headers})" << std::endl;
+            cMakeFile << "add_dependencies(${PROJECT_TARGET_MAIN} plibsys)" << std::endl;
+            cMakeFile << "target_link_libraries(${PROJECT_TARGET_MAIN} plibsys)" << std::endl;
             cMakeFile << "target_link_libraries(${PROJECT_TARGET_MAIN} ${HIGGS_EXTERNAL_LIBS})" << std::endl;
+            cMakeFile << "target_link_libraries(${PROJECT_TARGET_MAIN} ${PLIBSYS_PLATFORM_LINK_LIBRARIES})" << std::endl;
             cMakeFile << std::endl;
 
             // Write-in the CMake target includes details
@@ -822,7 +890,10 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
 
             // Write-in the CMake testing target libraries information
             cMakeFile << "# Setup the test target" << std::endl;
+            cMakeFile << "add_dependencies(${PROJECT_TARGET_TEST} plibsys)" << std::endl;
+            cMakeFile << "target_link_libraries(${PROJECT_TARGET_TEST} plibsys)" << std::endl;
             cMakeFile << "target_link_libraries(${PROJECT_TARGET_TEST} ${HIGGS_EXTERNAL_LIBS})" << std::endl;
+            cMakeFile << "target_link_libraries(${PROJECT_TARGET_TEST} ${PLIBSYS_PLATFORM_LINK_LIBRARIES})" << std::endl;
             cMakeFile << "target_link_libraries(${PROJECT_TARGET_TEST} Catch)" << std::endl;
             cMakeFile << std::endl;
 

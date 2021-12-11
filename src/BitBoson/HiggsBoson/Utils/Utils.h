@@ -46,6 +46,20 @@ namespace BitBoson::Utils
      */
     std::vector<std::string> splitStringByDelimiter(const std::string& stringToSplit, char delimiter);
 
+    /**
+     * Function used to get the current executing user's home-path on disk
+     *
+     * @return String representation of the user's home-path
+     */
+    std::string getHomePath();
+
+    /**
+     * Function used to get the SHA256 hash of the given string in a hex format
+     *
+     * @param data String to get the hash of
+     * @return String representing the hashed value of the given data
+     */
+    std::string sha256(const std::string& data);
 }
 
 #endif //HIGGS_BOSON_UTILS_H

@@ -24,28 +24,31 @@
 # building higgs-boson (not for higgs-boson to use though)
 #
 
-# Use Ubuntu Linux (18.04) as the image
-FROM ubuntu:18.04
+# Use Ubuntu Linux (20.04) as the image
+FROM ubuntu:20.04
 
 # Update/Upgrade the image
 RUN apt-get update -y
 RUN apt-get upgrade -y
 
 # Install all dependencies from APT-GET
-RUN apt-get install -y cmake
-RUN apt-get install -y gcc g++
-RUN apt-get install -y make
-RUN apt-get install -y git
-RUN apt-get install -y libc-dev
-RUN apt-get install -y autoconf
-RUN apt-get install -y libtool
-RUN apt-get install -y linux-headers-generic
-RUN apt-get install -y clang-6.0
-RUN apt-get install -y llvm
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y && apt-get upgrade -y \
+    && apt-get install -y cmake \
+                          gcc g++ \
+                          make \
+                          git \
+                          libc-dev \
+                          autoconf \
+                          libtool \
+                          linux-headers-generic \
+                          clang-10 \
+                          llvm-10 \
+                          wget
 
 # Setup the aliases for clang to be used properly
-RUN cp /usr/bin/clang-6.0 /usr/bin/clang
-RUN cp /usr/bin/clang++-6.0 /usr/bin/clang++
+RUN rm -rf /usr/bin/clang && ln -s /usr/bin/clang-10 /usr/bin/clang
+RUN rm -rf /usr/bin/clang++ && ln -s /usr/bin/clang-cpp-10 /usr/bin/clang++
 
 # Create higgs-boson user and group
 RUN useradd -d /home/higgs-boson -ms /bin/bash higgs-boson

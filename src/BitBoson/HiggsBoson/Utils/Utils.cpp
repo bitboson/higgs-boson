@@ -27,6 +27,8 @@
 #include <array>
 #include <sstream>
 #include <algorithm>
+#include <stdlib.h>
+#include <picosha2/picosha2.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 
@@ -111,4 +113,67 @@ std::vector<std::string> Utils::splitStringByDelimiter(const std::string& string
 
     // Return the vector of items
     return stringItems;
+}
+
+/**
+ * Function used to get the current executing user's home-path on disk
+ *
+ * @return String representation of the user's home-path
+ */
+std::string Utils::getHomePath()
+{
+
+    // Setup the return string
+    std::string retString;
+
+    // Start by trying to get the user-profile variable
+    // This should be defined for Windows only
+    const char* userProfileValue = getenv("USERPROFILE");
+    if (userProfileValue != NULL)
+        retString = std::string(userProfileValue);
+
+    // If we still haven't figured out the home directory
+    // next try using the HOMEDRIVE and HOMEPATH variables
+    if (retString.empty()) {
+        const char* homeDriveValue = getenv("HOMEDRIVE");
+        const char* homePathValue = getenv("HOMEPATH");
+        if ((homeDriveValue != NULL) && (homePathValue != NULL))
+            retString = std::string(homeDriveValue) + std::string(homePathValue);
+    }
+
+    // If we still haven't figured out the home directory
+    // next we can then try to get the HOME variable
+    if (retString.empty()) {
+        const char* linuxHomeDirValue = getenv("HOME");
+        if (linuxHomeDirValue != NULL)
+            retString = std::string(linuxHomeDirValue);
+    }
+
+    // If we still haven't figured out the home directory
+    // next we can then try to run the "pwd" command
+    if (retString.empty()) {
+        std::string pwdValue = ExecShell::exec("pwd");
+        if (!pwdValue.empty())
+            retString = Utils::splitStringByDelimiter(pwdValue, '\n').front();
+    }
+
+    // Return the return string
+    return retString;
+}
+
+/**
+ * Function used to get the SHA256 hash of the given string in a hex format
+ *
+ * @param data String to get the hash of
+ * @return String representing the hashed value of the given data
+ */
+std::string Utils::sha256(const std::string& data)
+{
+
+    // Create the destination vector and calculate the hash
+    std::vector<unsigned char> hash(picosha2::k_digest_size);
+    picosha2::hash256(data.begin(), data.end(), hash.begin(), hash.end());
+
+    // Calculate the hex-form of the SHA256 hash and return it
+    return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }
