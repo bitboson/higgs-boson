@@ -260,7 +260,8 @@ bool CMakeSettings::buildCMakeProject(const std::string& target)
             buildFile << "cmake";
             if (target == "default")
                 buildFile << " -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++";
-            buildFile << " -DCMAKE_BUILD_TYPE=Release " << _cMakeCacheDir << std::endl;
+            buildFile << " -DCMAKE_BUILD_TYPE=Release";
+            buildFile << " -DCMAKE_TOOLCHAIN_FILE=/osxcross/target/toolchain.cmake " << _cMakeCacheDir << std::endl;
             buildFile << std::endl;
 
             // Close the build file
@@ -579,7 +580,7 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
 
             // Write-in the CMake minumum requirements information
             cMakeFile << "# Setup the CMake minimum requirements" << std::endl;
-            cMakeFile << "cmake_minimum_required(VERSION 3.0.0)" << std::endl;
+            cMakeFile << "cmake_minimum_required(VERSION 3.9.0)" << std::endl;
             cMakeFile << std::endl;
 
             // Write-in the CMake C++ standards information
@@ -642,6 +643,19 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile << "if(DEFINED ENV{FC})" << std::endl;
             cMakeFile << "    MESSAGE(STATUS \"Fortran Compiler Set To: $ENV{FC}\")" << std::endl;
             cMakeFile << "endif()" << std::endl;
+            cMakeFile << std::endl;
+
+            // Setup CMake cross-platform toolchain settings
+            cMakeFile << "# Setup CMake cross-platform toolchain settings" << std::endl;
+            cMakeFile << "set(CMAKE_CXX_COMPILER \"$ENV{CXX}\")" << std::endl;
+            cMakeFile << "set(CMAKE_C_COMPILER \"$ENV{CC}\")" << std::endl;
+            cMakeFile << "set(CMAKE_ASM_COMPILER \"$ENV{AS}\")" << std::endl;
+            cMakeFile << "set(CMAKE_Fortran_COMPILER $ENV{FC})" << std::endl;
+            cMakeFile << "if(DEFINED ENV{LD})" << std::endl;
+            cMakeFile << "    set(CMAKE_SYSTEM_VERSION 1)" << std::endl;
+            cMakeFile << "    set(CMAKE_SYSROOT \"$ENV{HIGGS_BOSON_SYSROOT}\")" << std::endl;
+            cMakeFile << "endif()" << std::endl;
+            cMakeFile << std::endl;
 
             // Setup default environment variables for cross-building
             // TODO - Inject default value based on target OS for higgs-boson project itself
@@ -664,6 +678,12 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile << "    set(ENV{HIGGS_BOSON_TARGET_ARCH} x86_64)" << std::endl;
             cMakeFile << "    MESSAGE(STATUS \"Target Architecture Set To: $ENV{HIGGS_BOSON_TARGET_ARCH}\")" << std::endl;
             cMakeFile << "endif()" << std::endl;
+            cMakeFile << std::endl;
+
+            // Write-in cross-compilation configuration
+            cMakeFile << "# Set Cross-Compilation Target Information" << std::endl;
+            cMakeFile << "set(CMAKE_HOST_SYSTEM_NAME Linux)" << std::endl;
+            cMakeFile << "set(CMAKE_SYSTEM_NAME $ENV{HIGGS_BOSON_TARGET_OS})" << std::endl;
             cMakeFile << std::endl;
 
             // Write-in the CMake source directories

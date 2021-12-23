@@ -43,7 +43,7 @@ dependencies:
     type: manual
     target any:
       build:
-        - ${CXX} -std=c++17 -stdlib=libstdc++ -fPIC -shared yaml/Yaml.cpp -o libminiyaml.${LIB_EXT}
+        - ${CXX} -std=c++17 -fPIC -shared yaml/Yaml.cpp -o libminiyaml.${LIB_EXT}
       libs:
         - libminiyaml.${LIB_EXT}
       include:
