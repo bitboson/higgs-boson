@@ -260,8 +260,7 @@ bool CMakeSettings::buildCMakeProject(const std::string& target)
             buildFile << "cmake";
             if (target == "default")
                 buildFile << " -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++";
-            buildFile << " -DCMAKE_BUILD_TYPE=Release";
-            buildFile << " -DCMAKE_TOOLCHAIN_FILE=/osxcross/target/toolchain.cmake " << _cMakeCacheDir << std::endl;
+            buildFile << " -DCMAKE_BUILD_TYPE=Release " << _cMakeCacheDir << std::endl;
             buildFile << std::endl;
 
             // Close the build file

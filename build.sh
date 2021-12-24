@@ -20,6 +20,9 @@
 #
 set -e
 
+# Setup platform dependent variables
+[[ -z "${HIGGS_LIB_EXT}" ]] && HIGGS_LIB_EXT='so' || set HIGGS_LIB_EXT="${HIGGS_LIB_EXT}"
+
 # Get the current directory for reference
 HIGGS_BOSON_MANUAL_ORIG_DIR=$(pwd)
 
@@ -36,8 +39,8 @@ git clone git://github.com/bitboson-deps/picosha2.git
 cd $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/external/raw/mini-yaml
 mkdir -p $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/output/manual/miniyaml
 rm -rf ./higgs-boson_default_headers && mkdir -p ./higgs-boson_default_headers
-clang++ -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++17 -stdlib=libstdc++ -fPIC -shared yaml/Yaml.cpp -o libminiyaml.so
-cp -r ./libminiyaml.so $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/output/manual/miniyaml/
+clang++ -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++17 -fPIC -shared yaml/Yaml.cpp -o libminiyaml.$HIGGS_LIB_EXT
+cp -r ./libminiyaml.$HIGGS_LIB_EXT $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/output/manual/miniyaml/
 cp -r ./yaml ./higgs-boson_default_headers
 
 # Build the picosha2 dependency and copy the artifacts
