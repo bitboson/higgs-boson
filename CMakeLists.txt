@@ -60,6 +60,15 @@ endif()
 set(CMAKE_SOURCE_DIR ${HIGGS_PROJECT_SRC})
 set(CMAKE_CURRENT_SOURCE_DIR ${HIGGS_PROJECT_SRC})
 
+# Handle cross-platform differences
+if(DEFINED ENV{HIGGS_LIB_EXT})
+    set(HIGGS_LIB_EXT $ENV{HIGGS_LIB_EXT})
+    MESSAGE(STATUS "Library-Extension set to: ${HIGGS_LIB_EXT}")
+else()
+    set(HIGGS_LIB_EXT so)
+    MESSAGE(STATUS "Library-Extension set to (default): ${HIGGS_LIB_EXT}")
+endif()
+
 
 #
 #
@@ -74,7 +83,7 @@ set(HIGGS_EXTERNAL_INCLUDES
 
 # Setup the library and linker information
 set(HIGGS_EXTERNAL_LIBS
-    "${HIGGS_BOSON_MANUAL_DIR}/.higgs-boson/output/manual/miniyaml/libminiyaml.so"
+    "${HIGGS_BOSON_MANUAL_DIR}/.higgs-boson/output/manual/miniyaml/libminiyaml.${HIGGS_LIB_EXT}"
 )
 
 # Add threading to the build process
