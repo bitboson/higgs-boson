@@ -20,9 +20,6 @@
  */
 
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include <algorithm>
 #include <yaml/Yaml.hpp>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
@@ -84,9 +81,9 @@ bool HiggsBosonDependency::compileTarget(const std::string& target,
     // NOTE: We also have to ensure this runs locally, not in the container
     // TODO - Determine if this is actually needed or not
     //auto currRunTypeCmd = HiggsBoson::RunTypeSingleton::getRunTypeCommand();
-    //HiggsBoson::RunTypeSingleton::setRunTypeCommand("sh");
+    //HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
     retFlag = _internalDep->compileTarget(target);
-    //HiggsBoson::RunTypeSingleton::setRunTypeCommand(currRunTypeCmd);
+    //HiggsBoson::RunTypeSingleton::setDockerRunCommand(currRunTypeCmd);
 
     // Only continue if the build was successful
     if (retFlag)

@@ -21,6 +21,7 @@
 
 #include <map>
 #include <string>
+#include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Utils/Constants.h>
@@ -46,7 +47,7 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
     Yaml::Parse(root, filePath.c_str());
 
     // Ensure the temporary directory exists
-    ExecShell::exec("mkdir -p " + tmpDir);
+    HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + tmpDir);
 
     // Read-in the YAML configuration for the Project Settings
     auto projectName = root["project"]["name"].As<std::string>();
@@ -75,7 +76,7 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
     // Initialize the Peru settings object
     std::string peruFile = tmpDir + "/peru.yaml";
     std::string peruDir = tmpDir + "/external/raw/";
-    ExecShell::exec("mkdir -p " + peruDir);
+    HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + peruDir);
     _peruSettings = std::make_shared<PeruSettings>(peruFile, peruDir);
 
     // Read-in the YAML configuration for the Dependencies
@@ -136,7 +137,7 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
 
                             // Create the actual manual dependency
                             std::string depDir = tmpDir + "/external/raw/" + depName;
-                            ExecShell::exec("mkdir -p " + depDir);
+                            HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + depDir);
                             auto dependencyRaw = std::make_shared<ManualDependency>(depDir, depName, getConfiguredTargets());
                             dependency = dependencyRaw;
 
@@ -232,7 +233,7 @@ Configuration::Configuration(const std::string& projectDir, const std::string& f
                     higgsConfYaml = depDir + "/" + higgsConfYaml;
 
                     // Create the actual higgs-boson dependency
-                    ExecShell::exec("mkdir -p " + depDir);
+                    HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + depDir);
                     auto dependencyRaw = std::make_shared<HiggsBosonDependency>(depDir, depName, higgsConfYaml);
                     dependency = dependencyRaw;
 

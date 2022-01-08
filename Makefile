@@ -31,7 +31,7 @@ docker_ssh: clean
 
 # Setup the actual build command (without higgs-boson installed)
 build: clean
-	sh build.sh
+	bash build.sh
 
 # Setup the build command (assuming manual build is complete)
 build2: build

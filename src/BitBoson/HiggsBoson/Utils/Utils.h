@@ -60,6 +60,15 @@ namespace BitBoson::Utils
      * @return String representing the hashed value of the given data
      */
     std::string sha256(const std::string& data);
+
+    /**
+     * Function used to trim the provided string (in-place)
+     * NOTE: We also return the string for convenience
+     *
+     * @param stringToTrim String to trim (in-place)
+     * @return String representing the trimmed string
+     */
+    std::string trim(std::string &stringToTrim);
 }
 
 #endif //HIGGS_BOSON_UTILS_H

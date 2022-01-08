@@ -25,6 +25,7 @@
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
+#include <BitBoson/HiggsBoson/Utils/FileWriter.h>
 
 using namespace BitBoson;
 
@@ -55,8 +56,20 @@ HiggsBoson::HiggsBoson(const std::string& projectDir, const std::string& filePat
 bool HiggsBoson::download()
 {
 
-    // Call the Peru Download operation and return the results
-    return _configuration->getPeruSettings()->peruSync();
+    // Create a return flag
+    bool retFlag = false;
+
+    // Start the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::runIdleContainer();
+
+    // Call the Peru Download operation and setup the return value
+    retFlag = _configuration->getPeruSettings()->peruSync();
+
+    // Stop the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::stopIdleContainer();
+
+    // Return the return flag
+    return retFlag;
 }
 
 /**
@@ -71,6 +84,9 @@ bool HiggsBoson::buildDependencies(const std::string& target)
     // Create a return flag
     bool retFlag = true;
 
+    // Start the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::runIdleContainer();
+
     // Define the appropriate directories for the target
     std::string targetCacheDir = _cacheDir + "/output/" + target;
     std::string targetHeaderCacheDir = _cacheDir + "/includes/" + target;
@@ -81,11 +97,11 @@ bool HiggsBoson::buildDependencies(const std::string& target)
     {
 
         // Remove the corresponding output directory
-        ExecShell::exec("rm -rf " + targetCacheDir);
-        ExecShell::exec("rm -rf " + targetHeaderCacheDir);
+        HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " + targetCacheDir);
+        HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " + targetHeaderCacheDir);
 
         // Re-create the output header cache directory
-        retFlag &= (system(std::string("mkdir -p " + targetHeaderCacheDir).c_str()) == 0);
+        retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + targetHeaderCacheDir);
 
         // Handle the building and outputs for all of the dependencies
         for (const auto& dependency : _configuration->getDependencies())
@@ -100,18 +116,22 @@ bool HiggsBoson::buildDependencies(const std::string& target)
                     _configuration->getHeadersOutputForDependency(dependency, target));
 
             // Ensure the dependency-target directory exist
-            retFlag &= (system(std::string("mkdir -p " + depCacheDir).c_str()) == 0);
+            retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + depCacheDir);
 
             // Write the libraries to the cache output directories
             for (const auto& library : dependency->getLibraries(target))
-                retFlag &= (system(std::string("cp " + library + " " + depCacheDir).c_str()) == 0);
+                retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer("cp " + library + " " + depCacheDir);
 
             // Write the headers to the cache output directories
             auto depOutputHeaderDir = std::string(dependency->getHeaderDir(target) + "/");
             auto cacheOutputHeaderDir = std::string(targetHeaderCacheDir + "/");
-            retFlag &= (system(std::string("rsync -av " + depOutputHeaderDir + " " + cacheOutputHeaderDir).c_str()) == 0);
+            retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer(
+                    "rsync -av " + depOutputHeaderDir + " " + cacheOutputHeaderDir);
         }
     }
+
+    // Stop the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::stopIdleContainer();
 
     // Return the return flag
     return retFlag;
@@ -129,6 +149,9 @@ bool HiggsBoson::buildProject(const std::string& target)
     // Create a return flag
     bool retFlag = false;
 
+    // Start the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::runIdleContainer();
+
     // Define the appropriate directories for the target
     std::string targetCacheDir = _cacheDir + "/output/" + target;
     std::string targetOutputDir = _projectDir + "/output/" + target;
@@ -139,7 +162,7 @@ bool HiggsBoson::buildProject(const std::string& target)
     {
 
         // Remove the corresponding output directory
-        ExecShell::exec("rm -rf " + targetOutputDir);
+        HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " + targetOutputDir);
 
         // Write-in all of the library dependencies into the CMakeLists.txt file
         for (const auto& dependency : _configuration->getDependencies())
@@ -157,34 +180,54 @@ bool HiggsBoson::buildProject(const std::string& target)
         if (buildSuccessfully)
         {
 
-            // Ensure the output directories exist
-            retFlag = (system(std::string("mkdir -p " + targetOutputDir).c_str()) == 0);
-            retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/bin").c_str()) == 0);
-            retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/lib").c_str()) == 0);
-            retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/deps").c_str()) == 0);
-            retFlag &= (system(std::string("mkdir -p " + targetOutputDir + "/pkg").c_str()) == 0);
+            // Open-up a new file to write the package script into
+            std::string packageScriptPath = _cacheDir + "/builds/package-" + target + ".sh";
+            auto packageScript = FileWriter(packageScriptPath);
+            if (packageScript.isOpen())
+            {
 
-            // Copy the output file for the project into the appropriate directory
-            std::string cMakeOutputDir = _cacheDir + "/builds/compile/" + target;
-            if (_configuration->getProjectSettings()->getProjectType() == ProjectSettings::ProjectType::TYPE_EXE)
-                retFlag &= (system(std::string("mv " + cMakeOutputDir + "/bin/* " + targetOutputDir + "/bin/").c_str()) == 0);
-            else
-                retFlag &= (system(std::string("mv " + cMakeOutputDir + "/lib/* " + targetOutputDir + "/lib/").c_str()) == 0);
+                // Ensure the output directories exist
+                packageScript.writeLine("mkdir -p " + targetOutputDir);
+                packageScript.writeLine("mkdir -p " + targetOutputDir + "/bin");
+                packageScript.writeLine("mkdir -p " + targetOutputDir + "/lib");
+                packageScript.writeLine("mkdir -p " + targetOutputDir + "/deps");
+                packageScript.writeLine("mkdir -p " + targetOutputDir + "/pkg");
 
-            // Copy the dependencies into the appropriate directory
-            for (const auto& dependency : _configuration->getDependencies())
-                for (const auto& libraryFile : Utils::listFilesInDirectory(targetCacheDir + "/" + dependency->getName()))
-                    retFlag &= (system(std::string("cp " + libraryFile + " " + targetOutputDir + "/deps/").c_str()) == 0);
+                // Copy the output file for the project into the appropriate directory
+                std::string cMakeOutputDir = _cacheDir + "/builds/compile/" + target;
+                if (_configuration->getProjectSettings()->getProjectType() == ProjectSettings::ProjectType::TYPE_EXE)
+                    packageScript.writeLine("mv " + cMakeOutputDir + "/bin/* " + targetOutputDir + "/bin/");
+                else
+                    packageScript.writeLine("mv " + cMakeOutputDir + "/lib/* " + targetOutputDir + "/lib/");
 
-            // Compress the output files into the corresponding higgs-boson tar/package file
-            std::string projectName = _configuration->getProjectSettings()->getProjectName();
-            std::string projectVersion = _configuration->getProjectSettings()->getProjectVersion();
-            std::string pkgName = projectName + "-" + projectVersion + "-" + target + ".hbsn";
-            system(std::string("mkdir -p " + _cacheDir + "/pkg").c_str());
-            system(std::string("cd " + targetOutputDir + " && tar -c -f " + _cacheDir + "/" + pkgName + " .").c_str());
-            system(std::string("mv " + _cacheDir + "/" + pkgName + " " + targetOutputDir + "/pkg").c_str());
+                // Copy the dependencies into the appropriate directory
+                for (const auto& dependency : _configuration->getDependencies())
+                    for (const auto& libraryFile : Utils::listFilesInDirectory(targetCacheDir + "/" + dependency->getName()))
+                        packageScript.writeLine("cp " + libraryFile + " " + targetOutputDir + "/deps/");
+
+                // Compress the output files into the corresponding higgs-boson tar/package file
+                std::string projectName = _configuration->getProjectSettings()->getProjectName();
+                std::string projectVersion = _configuration->getProjectSettings()->getProjectVersion();
+                std::string pkgName = projectName + "-" + projectVersion + "-" + target + ".hbsn";
+                packageScript.writeLine("mkdir -p " + _cacheDir + "/pkg");
+                packageScript.writeLine("cd " + targetOutputDir + " && tar -c -f " + _cacheDir + "/" + pkgName + " .");
+                packageScript.writeLine("mv " + _cacheDir + "/" + pkgName + " " + targetOutputDir + "/pkg");
+
+                // Close the package script once writing is complete
+                packageScript.close();
+
+                // Execute the written package script for the generated artifacts
+                retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer("Packaging Artifacts for " + projectName,
+                        "bash " + packageScriptPath);
+
+                // Ensure that the package was written successfully before closing-down the container
+                HiggsBoson::RunTypeSingleton::waitForFileOrDirectoryExistence(targetOutputDir + "/pkg/" + pkgName);
+            }
         }
     }
+
+    // Stop the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::stopIdleContainer();
 
     // Return the return flag
     return retFlag;
@@ -203,6 +246,9 @@ bool HiggsBoson::testProject(CMakeSettings::TestType testType, const std::string
     // Create a return flag
     bool retFlag = false;
 
+    // Start the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::runIdleContainer();
+
     // Define the appropriate directories for the target
     std::string targetCacheDir = _cacheDir + "/output/default";
 
@@ -217,6 +263,9 @@ bool HiggsBoson::testProject(CMakeSettings::TestType testType, const std::string
 
     // Test the main project for the provided test-type
     retFlag = _configuration->getCMakeSettings()->testCMakeProject(testType, testFilter);
+
+    // Stop the Higgs-Boson builder container
+    HiggsBoson::RunTypeSingleton::stopIdleContainer();
 
     // Return the return flag
     return retFlag;

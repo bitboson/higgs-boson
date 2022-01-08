@@ -103,8 +103,10 @@ set(${PROJECT_TARGET_MAIN}_headers
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/Utils.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/HiggsBoson.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/PeruSettings.h"
+        "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/DockerSyncSettings.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/ExecShell.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/Constants.h"
+        "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/FileWriter.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/CMakeSettings.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Dependencies/ManualDependency.h"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/ProjectSettings.h"
@@ -118,6 +120,7 @@ set(${PROJECT_TARGET_MAIN}_sources
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/HiggsBoson.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/ExecShell.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/Constants.cpp"
+        "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/FileWriter.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/ProjectSettings.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/CMakeSettings.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Dependencies/ManualDependency.cpp"
@@ -125,6 +128,7 @@ set(${PROJECT_TARGET_MAIN}_sources
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Utils/Utils.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Dependencies/Dependency.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/PeruSettings.cpp"
+        "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Settings/DockerSyncSettings.cpp"
         "${HIGGS_BOSON_MANUAL_DIR}/src/BitBoson/HiggsBoson/Configuration/Configuration.cpp"
 )
 

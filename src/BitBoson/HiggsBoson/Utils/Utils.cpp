@@ -20,15 +20,18 @@
  */
 
 #include <cstdio>
-#include <iostream>
+#include <cctype>
+#include <locale>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <array>
 #include <sstream>
-#include <algorithm>
+#include <iostream>
 #include <stdlib.h>
+#include <stdexcept>
+#include <algorithm>
 #include <picosha2/picosha2.h>
+#include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 
@@ -48,18 +51,19 @@ std::vector<std::string> Utils::listFilesInDirectory(const std::string& dir)
     std::vector<std::string> retVect;
 
     // List all of the files in the the specified directory
-    auto listedHeaders = ExecShell::exec("find " + dir + " -type f");
-    if (!listedHeaders.empty())
+    auto listedFiles = HiggsBoson::RunTypeSingleton::executeInContainerWithResponse(
+            "find " + dir + " -type f");
+    if (!listedFiles.empty())
     {
 
         // Setup string-stream for file-listing
-        std::string headerListing;
-        std::stringstream stringStream(listedHeaders);
+        std::string fileListing;
+        std::stringstream stringStream(listedFiles);
 
         // Split the listing into parts using newline characters
         // and add the individual listings to the output vector
-        while(std::getline(stringStream, headerListing, '\n'))
-            retVect.push_back(headerListing);
+        while(std::getline(stringStream, fileListing, '\n'))
+            retVect.push_back(trim(fileListing));
 
         // Sort the results once we have them
         if (!retVect.empty())
@@ -152,7 +156,7 @@ std::string Utils::getHomePath()
     // If we still haven't figured out the home directory
     // next we can then try to run the "pwd" command
     if (retString.empty()) {
-        std::string pwdValue = ExecShell::exec("pwd");
+        std::string pwdValue = HiggsBoson::RunTypeSingleton::executeInContainerWithResponse("pwd");
         if (!pwdValue.empty())
             retString = Utils::splitStringByDelimiter(pwdValue, '\n').front();
     }
@@ -176,4 +180,25 @@ std::string Utils::sha256(const std::string& data)
 
     // Calculate the hex-form of the SHA256 hash and return it
     return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
+}
+
+/**
+ * Function used to trim the provided string (in-place)
+ * NOTE: We also return the string for convenience
+ *
+ * @param stringToTrim String to trim (in-place)
+ * @return String representing the trimmed string
+ */
+std::string Utils::trim(std::string &stringToTrim)
+{
+
+    // Define the special characters to trim
+    const char* badChars = " \t\n\r\f\v";
+
+    // Perfrom both right-to-left and left-to-right trimming
+    stringToTrim.erase(stringToTrim.find_last_not_of(badChars) + 1);
+    stringToTrim.erase(0, stringToTrim.find_first_not_of(badChars));
+
+    // Return the trimmed string
+    return stringToTrim;
 }

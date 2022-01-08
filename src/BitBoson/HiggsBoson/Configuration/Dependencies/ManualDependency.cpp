@@ -19,13 +19,12 @@
  *     - Tyler Parcell <OriginLegend>
  */
 
-#include <fstream>
-#include <sstream>
-#include <iostream>
+
 #include <algorithm>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
+#include <BitBoson/HiggsBoson/Utils/FileWriter.h>
 #include <BitBoson/HiggsBoson/Configuration/Dependencies/ManualDependency.h>
 
 using namespace BitBoson;
@@ -68,22 +67,21 @@ bool ManualDependency::setBuildSteps(const std::string& target,
     {
 
         // Open the build file
-        std::ofstream buildFile;
-        buildFile.open(dir + "/higgs-build_" + target + ".sh");
-        if (buildFile.is_open())
+        auto buildFile = FileWriter(dir + "/higgs-build_" + target + ".sh");
+        if (buildFile.isOpen())
         {
 
             // Write-in the environment variables for building
-            buildFile << "cd " << dir << std::endl;
-            buildFile << "HIGGS_TARGET=" << target << std::endl;
-            buildFile << "HIGGS_HEADER_DIR=" << getHeaderDir(target) << std::endl;
-            buildFile << "HIGGS_LIBRARY_DIR=" << getLibraryDir(target) << std::endl;
-            buildFile << "mkdir -p " << getHeaderDir(target) << std::endl;
-            buildFile << "mkdir -p " << getLibraryDir(target) << std::endl;
+            buildFile.writeLine("cd " + dir);
+            buildFile.writeLine("HIGGS_TARGET=" + target);
+            buildFile.writeLine("HIGGS_HEADER_DIR=" + getHeaderDir(target));
+            buildFile.writeLine("HIGGS_LIBRARY_DIR=" + getLibraryDir(target));
+            buildFile.writeLine("mkdir -p " + getHeaderDir(target));
+            buildFile.writeLine("mkdir -p " + getLibraryDir(target));
 
             // Write the build-steps to the corresponding file
             for (const auto& buildStep : buildSteps)
-                buildFile << buildStep << std::endl;
+                buildFile.writeLine(buildStep);
 
             // Close the build file
             buildFile.close();
@@ -115,23 +113,18 @@ bool ManualDependency::compileTarget(const std::string& target,
     bool retFlag = false;
 
     // Remove the corresponding library and header files for output
-    ExecShell::exec("rm -rf " + getLibraryDir(target));
-    ExecShell::exec("rm -rf " + getHeaderDir(target));
+    HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " + getLibraryDir(target));
+    HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " + getHeaderDir(target));
 
     // Setup the build-file for the pre-configured build-target
-    // and only continue if the build-file exists
     auto buildFile = getDir() + "/higgs-build_" + target + ".sh";
-    auto response = ExecShell::exec("ls -ltr " + buildFile);
-    if (!response.empty())
-    {
 
-        // If we get here, it means that we got a non-empty response
-        // So we'll have to determine if the build-process failed
-        // or not for this particular target
-        auto buildMessage = "Building " + getName() + " for Target " + target;
-        retFlag = ExecShell::execWithResponse(buildMessage,
-                HiggsBoson::RunTypeSingleton::getRunTypeCommand() + " " + buildFile);
-    }
+    // If we get here, it means that we got a non-empty response
+    // So we'll have to determine if the build-process failed
+    // or not for this particular target
+    retFlag = HiggsBoson::RunTypeSingleton::executeInContainer(
+            "Building " + getName() + " for Target " + target,
+            "bash " + buildFile);
 
     // Archive/cache atrifacts if they are present and need archiving/caching
     if (retFlag)
@@ -171,7 +164,7 @@ bool ManualDependency::postBuildArtifactCache(const std::string& target,
         std::string buildMessage = "Caching " + getName() + " Binary ";
         auto buildMessage2 = " for Target " + target;
         for (const auto& libPath : libPaths)
-            retFlag = ExecShell::execWithResponse(
+            retFlag = HiggsBoson::RunTypeSingleton::executeInContainer(
                     buildMessage + (
                             (fullPathsGiven && (libPath.find_last_of('/') != std::string::npos)) ? libPath.substr(libPath.find_last_of('/') + 1) : libPath
                         ) + buildMessage2,
@@ -187,7 +180,7 @@ bool ManualDependency::postBuildArtifactCache(const std::string& target,
         std::string buildMessage = "Caching " + getName() + " Headers ";
         auto buildMessage2 = " for Target " + target;
         for (const auto& headerDir : headerDirs)
-            retFlag = ExecShell::execWithResponse(
+            retFlag = HiggsBoson::RunTypeSingleton::executeInContainer(
                     buildMessage + (
                             (fullPathsGiven && (headerDir.find_last_of('/') != std::string::npos)) ? headerDir.substr(headerDir.find_last_of('/') + 1) : headerDir
                         ) + buildMessage2,

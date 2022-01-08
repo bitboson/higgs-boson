@@ -34,32 +34,47 @@ using namespace BitBoson;
  * command-line for the system/operating-system
  *
  * @param command String representing the command to run
+ * @param background Boolean indicating whether to background
+ *                   the execution of the provided command
  * @return String representing the STDOUT for the command
  */
-std::string ExecShell::exec(std::string command)
+std::string ExecShell::exec(std::string command, bool background)
 {
 
     // Create a return value
     std::string retValue;
 
-    // Run the command while piping STDERR to STDOUT
-    command += " 2>&1";
+    // Handle the non-background case
+    if (!background)
+    {
 
-    // Run the command using popen with a buffer for the
-    // STDOUT to write to the local string variable
-    std::array<char, 128> buffer;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+        // Run the command while piping STDERR to STDOUT
+        command += " 2>&1";
 
-    // Only continue if the pipe was opened properly and
-    // continuously append the buffer to the results
-    while (pipe && (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr))
-        retValue += buffer.data();
+        // Run the command using popen with a buffer for the
+        // STDOUT to write to the local string variable
+        std::array<char, 128> buffer;
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+
+        // Only continue if the pipe was opened properly and
+        // continuously append the buffer to the results
+        while (pipe && (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr))
+            retValue += buffer.data();
+    }
+
+    // Handle the non-background case
+    if (background)
+    {
+
+        // Execute the command using the system operation
+        system(std::string(command + " > /dev/null &").c_str());
+    }
 
     // Return the return value
     return retValue;
 }
 
-    /**
+/**
  * Function used to execute a given shell command on the
  * command-line for the system/operating-system with live output
  *

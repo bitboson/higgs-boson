@@ -53,7 +53,7 @@ TEST_CASE ("Generic Peru Settings Test", "[PeruSettingsTest]")
     REQUIRE (peruSettings.peruSync());
 
     // Verify the Peru file was written properly
-    std::string peruHash = "ee4d9ec1f41a6885a0c95235692afb92a543cad176c9e18b5103fcf05b164665";
+    std::string peruHash = "be6c9fe712c264ca3f352fa599f978a0736df44c30637123abe5f634f1d56c9f";
     REQUIRE (ExecShell::exec("sha256sum " + peruFile) == (peruHash + "  " + peruFile + "\n"));
 
     // Validate that the repo exists as expected

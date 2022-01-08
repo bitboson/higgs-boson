@@ -25,6 +25,7 @@
 #include <catch.hpp>
 #include <string>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
+#include <BitBoson/HiggsBoson/Utils/FileWriter.h>
 #include <BitBoson/HiggsBoson/Configuration/Settings/CMakeSettings.h>
 
 using namespace BitBoson;
@@ -44,21 +45,23 @@ bool writeProjectFiles(const std::string& projectPath)
     REQUIRE (system(std::string("mkdir -p " + projectPath + "/.higgs-boson/external/raw").c_str()) == 0);
 
     // Clone the Catch2 Repository
-    ExecShell::exec("git clone  git://github.com/bitboson-deps/Catch2.git " + projectPath + "/.higgs-boson/external/raw/catch2higgsboson");
+    ExecShell::exec("git clone git://github.com/bitboson-deps/Catch2.git " + projectPath + "/.higgs-boson/external/raw/catch2higgsboson");
+
+    // Clone the plibsys Repository
+    ExecShell::exec("git clone git://github.com/saprykin/plibsys.git " + projectPath + "/.higgs-boson/external/raw/plibsyshiggsboson");
 
     // Open the Header file
     bool headerFileWritten = false;
-    std::ofstream headerFile;
-    headerFile.open(projectPath + "/src/TestProj/helper.h");
-    if (headerFile.is_open())
+    auto headerFile = FileWriter(projectPath + "/src/TestProj/helper.h");
+    if (headerFile.isOpen())
     {
 
         // Write-in the C++ header file information
-        headerFile << "#include <string>" << std::endl;
-        headerFile << "#ifndef HIGGS_BOSON_HELPER_H" << std::endl;
-        headerFile << "#define HIGGS_BOSON_HELPER_H" << std::endl;
-        headerFile << "std::string getMessage();" << std::endl;
-        headerFile << "#endif // HIGGS_BOSON_HELPER_H" << std::endl;
+        headerFile.writeLine("#include <string>");
+        headerFile.writeLine("#ifndef HIGGS_BOSON_HELPER_H");
+        headerFile.writeLine("#define HIGGS_BOSON_HELPER_H");
+        headerFile.writeLine("std::string getMessage();");
+        headerFile.writeLine("#endif // HIGGS_BOSON_HELPER_H");
 
         // Close the C++ header file
         headerFile.close();
@@ -69,14 +72,13 @@ bool writeProjectFiles(const std::string& projectPath)
 
     // Open the Header Source file
     bool headerSourceFileWritten = false;
-    std::ofstream headerSourceFile;
-    headerSourceFile.open(projectPath + "/src/TestProj/helper.cpp");
-    if (headerSourceFile.is_open())
+    auto headerSourceFile = FileWriter(projectPath + "/src/TestProj/helper.cpp");
+    if (headerSourceFile.isOpen())
     {
 
         // Write-in the C++ header source file information
-        headerSourceFile << "#include <TestProj/helper.h>" << std::endl;
-        headerSourceFile << "std::string getMessage() { return \"Hello World!\"; };" << std::endl;
+        headerSourceFile.writeLine("#include <TestProj/helper.h>");
+        headerSourceFile.writeLine("std::string getMessage() { return \"Hello World!\"; };");
 
         // Close the C++ header source file
         headerSourceFile.close();
@@ -87,15 +89,14 @@ bool writeProjectFiles(const std::string& projectPath)
 
     // Open the CPP file
     bool cppFileWritten = false;
-    std::ofstream cppFile;
-    cppFile.open(projectPath + "/src/TestProj/main.cpp");
-    if (cppFile.is_open())
+    auto cppFile = FileWriter(projectPath + "/src/TestProj/main.cpp");
+    if (cppFile.isOpen())
     {
 
         // Write-in the C++ source file information
-        cppFile << "#include <iostream>" << std::endl;
-        cppFile << "#include <TestProj/helper.h>" << std::endl;
-        cppFile << "int main() { std::cout << getMessage(); return 0; };" << std::endl;
+        cppFile.writeLine("#include <iostream>");
+        cppFile.writeLine("#include <TestProj/helper.h>");
+        cppFile.writeLine("int main() { std::cout << getMessage(); return 0; };");
 
         // Close the C++ file
         cppFile.close();
@@ -106,18 +107,17 @@ bool writeProjectFiles(const std::string& projectPath)
 
     // Open the testing file
     bool teestingFileWritten = false;
-    std::ofstream testFile;
-    testFile.open(projectPath + "/test/TestProj/helper.test.hpp");
-    if (testFile.is_open())
+    auto testFile = FileWriter(projectPath + "/test/TestProj/helper.test.hpp");
+    if (testFile.isOpen())
     {
 
         // Write-in the C++ testing file information
-        testFile << "#ifndef HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
-        testFile << "#define HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
-        testFile << "#include <string>" << std::endl;
-        testFile << "#include <TestProj/helper.h>" << std::endl;
-        testFile << "TEST_CASE (\"Test1\", \"[TestSect1]\") { REQUIRE (getMessage() == \"Hello World!\"); }" << std::endl;
-        testFile << "#endif // HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
+        testFile.writeLine("#ifndef HIGGS_BOSON_HELPER_TEST_HPP");
+        testFile.writeLine("#define HIGGS_BOSON_HELPER_TEST_HPP");
+        testFile.writeLine("#include <string>");
+        testFile.writeLine("#include <TestProj/helper.h>");
+        testFile.writeLine("TEST_CASE (\"Test1\", \"[TestSect1]\") { REQUIRE (getMessage() == \"Hello World!\"); }");
+        testFile.writeLine("#endif // HIGGS_BOSON_HELPER_TEST_HPP");
 
         // Close the C++ testing file
         testFile.close();
@@ -162,7 +162,7 @@ TEST_CASE ("External Libraries and Includes CMake Settings Test", "[CMakeSetting
     REQUIRE (!cMakeSettings.buildCMakeProject("default"));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "46b576bf2aeef96429cb5263021f34b98059d5b090d98607bafbd2c80ba60469";
+    std::string cMakeHash = "a26de938fd4c75363bfee962f6fb4f270945781f7d866bb681b7810937502bd0";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -193,7 +193,7 @@ TEST_CASE ("Generic Executable CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.buildCMakeProject("default"));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "51c34ae63e162f543003afc0fe73f854dd54faade9c1a92a4c10e941a5881252";
+    std::string cMakeHash = "3a41b123bb88fc60fe01d3802b0ceed39fbb6621b10d3a5255b72e1d4ac6e5ee";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -223,7 +223,7 @@ TEST_CASE ("Generic Library CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.buildCMakeProject("default"));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
+    std::string cMakeHash = "4c565bf9e02ab6d1223c70236782538eb2282e91385bdb80f7023ddd82ffcd51";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -290,7 +290,7 @@ TEST_CASE ("Run Test CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::TEST));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
+    std::string cMakeHash = "4c565bf9e02ab6d1223c70236782538eb2282e91385bdb80f7023ddd82ffcd51";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -388,7 +388,7 @@ TEST_CASE ("Run Sanitize-Address CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_ADDRESS));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
+    std::string cMakeHash = "4c565bf9e02ab6d1223c70236782538eb2282e91385bdb80f7023ddd82ffcd51";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -419,7 +419,7 @@ TEST_CASE ("Run Sanitize-Behavior CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_BEHAVIOR));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
+    std::string cMakeHash = "4c565bf9e02ab6d1223c70236782538eb2282e91385bdb80f7023ddd82ffcd51";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -450,7 +450,7 @@ TEST_CASE ("Run Sanitize-Thread CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_THREAD));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
+    std::string cMakeHash = "4c565bf9e02ab6d1223c70236782538eb2282e91385bdb80f7023ddd82ffcd51";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
@@ -481,7 +481,7 @@ TEST_CASE ("Run Sanitize-Leak CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::SANITIZE_LEAK));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
+    std::string cMakeHash = "4c565bf9e02ab6d1223c70236782538eb2282e91385bdb80f7023ddd82ffcd51";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 

@@ -24,8 +24,13 @@
 
 #include <string>
 #include <memory>
+#include <thread>
+#include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Configuration/Configuration.h>
 #include <BitBoson/HiggsBoson/Configuration/Dependencies/Dependency.h>
+#include <BitBoson/HiggsBoson/Configuration/Settings/DockerSyncSettings.h>
+
+using namespace std::chrono_literals;
 
 namespace BitBoson
 {
@@ -40,7 +45,9 @@ namespace BitBoson
 
                 // Private member variables
                 private:
+                    bool _isContainer;
                     std::string _runCommand;
+                    std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
                 // Public member functions
                 public:
@@ -56,24 +63,172 @@ namespace BitBoson
                      *
                      * @param command String representing the command
                      */
-                    static void setRunTypeCommand(const std::string& command)
+                    static void setDockerRunCommand(const std::string& command)
                     {
 
                         // Simply set the run-type command accordingly
+                        getInstance()._isContainer = false;
                         getInstance()._runCommand = command;
+
+                        // Determine if this command is for a container or not
+                        if (!getInstance()._runCommand.empty() && (getInstance()._runCommand != "bash")
+                                && (getInstance()._runCommand != "sh"))
+                            getInstance()._isContainer = true;
                     }
 
                     /**
-                     * Static function used to get the run-type command
-                     * for the Singleton instance
+                     * Function used to get whether we are running commands in a container
                      *
-                     * @return String representing the command
+                     * @return Boolean indicating whether we are running commands in a container
                      */
-                    static std::string getRunTypeCommand()
+                    static bool isRunningCommandsInContainer()
                     {
 
-                        // Simply get and return the run-type command
-                        return getInstance()._runCommand;
+                        // Simply return if we are running commands in a container
+                        return getInstance()._isContainer;
+                    }
+
+                    /**
+                     * Function used to run the internally defined idle container
+                     * NOTE: This makes use of the docker-run command configured
+                     */
+                    static void runIdleContainer()
+                    {
+
+                        // Only handle if the command is actually for a container
+                        if (getInstance()._isContainer)
+                        {
+
+                            // Start by executing the container run process
+                            ExecShell::exec(getInstance()._runCommand, true);
+
+                            // Wait until the container has actually started
+                            std::this_thread::sleep_for(500ms);
+                            for (int ii = 0; ii < 6; ii++)
+                                if (ExecShell::exec("docker exec -it bitbosonhiggsbuilderprocess ls")
+                                        .find("Error") == std::string::npos)
+                                    break;
+                                else
+                                    std::this_thread::sleep_for(10000ms);
+                        }
+                    }
+
+                    /**
+                     * Function used to stop the internally defined idle container
+                     * NOTE: This makes use of the docker-run command configured
+                     */
+                    static void stopIdleContainer()
+                    {
+
+                        // Only handle if the command is actually for a container
+                        if (getInstance()._isContainer)
+                        {
+
+                            // Simply execute the container stop process
+                            ExecShell::exec("docker stop bitbosonhiggsbuilderprocess");
+                        }
+                    }
+
+                    /**
+                     * Function used to wait for the creation/existence of the given path
+                     *
+                     * @param path String representing the path to wait for existence of
+                     */
+                    static void waitForFileOrDirectoryExistence(const std::string& path)
+                    {
+
+                        // Only handle if the command is actually for a container
+                        if (getInstance()._isContainer)
+                        {
+
+                            // Attempt to wait until the given path exists
+                            for (int ii = 0; ii < 20; ii++)
+                                if (ExecShell::exec("docker exec -it bitbosonhiggsbuilderprocess ls " + path)
+                                        .find("No such file or directory") == std::string::npos)
+                                    break;
+                                else
+                                    std::this_thread::sleep_for(100ms);
+                        }
+                    }
+
+                    /**
+                     * Static function used to execute the provided command in the
+                     * Higgs-Boson builder container with a response
+                     *
+                     * @param command String representing the command to run
+                     * @return String representing the response of the command
+                     */
+                    static std::string executeInContainerWithResponse(const std::string& command)
+                    {
+
+                        // Setup the command prefix differently if this is a container
+                        std::string containerCmd = "";
+                        if (getInstance()._isContainer)
+                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+
+                        // Simply run the provided command in the Higgs-Boson builder container
+                        return ExecShell::exec(containerCmd + command);
+                    }
+
+                    /**
+                     * Static function used to execute the provided command in the
+                     * Higgs-Boson builder container
+                     *
+                     * @param message String representing the message to print
+                     * @param command String representing the command to run
+                     * @return Boolean indicating whether the command was successful
+                     */
+                    static bool executeInContainer(const std::string& message, const std::string& command)
+                    {
+
+                        // Setup the command prefix differently if this is a container
+                        std::string containerCmd = "";
+                        if (getInstance()._isContainer)
+                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+
+                        // Simply run the provided command in the Higgs-Boson builder container
+                        return ExecShell::execWithResponse(message, containerCmd + command);
+                    }
+
+                    /**
+                     * Static function used to execute the provided command in the
+                     * Higgs-Boson builder container
+                     *
+                     * @param command String representing the command to run
+                     * @return Boolean indicating whether the command was successful
+                     */
+                    static bool executeInContainer(const std::string& command)
+                    {
+
+                        // Setup the command prefix differently if this is a container
+                        std::string containerCmd = "";
+                        if (getInstance()._isContainer)
+                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+
+                        // Simply run the provided command in the Higgs-Boson builder container
+                        return ExecShell::execLive(containerCmd + command);
+                    }
+
+                    /**
+                     * Constructor used to setup the docker-sync settings object instance
+                     *
+                     * @param projectDir String representing the project directory
+                     * @param projectCacheDir String representing the project cache directory
+                     * @param projectDirHash String representing the project directory hash
+                     */
+                    static std::shared_ptr<DockerSyncSettings> getDockerSync(const std::string& projectDir="",
+                            const std::string& projectCacheDir="", const std::string& projectDirHash="")
+                    {
+
+                        // Create the docker-sync settings if it does not already exist
+                        // and if the provided parameters are not null
+                        if ((getInstance()._dockerSyncSettings == nullptr) && !projectDir.empty()
+                                && !projectCacheDir.empty() && !projectDirHash.empty())
+                            getInstance()._dockerSyncSettings = std::make_shared<DockerSyncSettings>(
+                                    projectDir, projectCacheDir, projectDirHash);
+
+                        // Return the configured docker-sync settings
+                        return getInstance()._dockerSyncSettings;
                     }
 
                 // Private member functions
@@ -89,6 +244,9 @@ namespace BitBoson
 
                         // Setup the default run command
                         _runCommand = "sh";
+
+                        // Setup the default docker-sync settings (none)
+                        _dockerSyncSettings = nullptr;
                     }
 
                     /**

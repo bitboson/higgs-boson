@@ -24,11 +24,9 @@
 
 #include <catch.hpp>
 #include <stdlib.h>
-#include <iostream>
 #include <stdio.h>
 #include <memory>
 #include <string>
-#include <fstream>
 #include <BitBoson/HiggsBoson/Configuration/Dependencies/Dependency.h>
 
 using namespace BitBoson;

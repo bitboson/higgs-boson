@@ -36,9 +36,11 @@ namespace BitBoson::ExecShell
      * command-line for the system/operating-system
      *
      * @param command String representing the command to run
+     * @param background Boolean indicating whether to background
+     *                   the execution of the provided command
      * @return String representing the STDOUT for the command
      */
-    std::string exec(std::string command);
+    std::string exec(std::string command, bool background=false);
 
     /**
      * Function used to execute a given shell command on the

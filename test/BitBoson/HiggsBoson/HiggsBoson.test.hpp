@@ -25,11 +25,9 @@
 #include <catch.hpp>
 #include <string>
 #include <cstdlib>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
+#include <BitBoson/HiggsBoson/Utils/FileWriter.h>
 
 using namespace BitBoson;
 
@@ -54,19 +52,21 @@ bool writeHiggsProjectFiles(const std::string& projectPath, bool isLibrary)
     // Clone the Catch2 Repository
     ExecShell::exec("git clone  git://github.com/bitboson-deps/Catch2.git " + projectPath + "/config/external/catch2");
 
+    // Clone the plibsys Repository
+    ExecShell::exec("git clone git://github.com/saprykin/plibsys.git " + projectPath + "/.higgs-boson/external/raw/plibsyshiggsboson");
+
     // Open the Header file
     bool headerFileWritten = false;
-    std::ofstream headerFile;
-    headerFile.open(projectPath + "/src/TestProj/helper.h");
-    if (headerFile.is_open())
+    auto headerFile = FileWriter(projectPath + "/src/TestProj/helper.h");
+    if (headerFile.isOpen())
     {
 
         // Write-in the C++ header file information
-        headerFile << "#include <string>" << std::endl;
-        headerFile << "#ifndef HIGGS_BOSON_HELPER_H" << std::endl;
-        headerFile << "#define HIGGS_BOSON_HELPER_H" << std::endl;
-        headerFile << "std::string getMessage();" << std::endl;
-        headerFile << "#endif // HIGGS_BOSON_HELPER_H" << std::endl;
+        headerFile.writeLine("#include <string>");
+        headerFile.writeLine("#ifndef HIGGS_BOSON_HELPER_H");
+        headerFile.writeLine("#define HIGGS_BOSON_HELPER_H");
+        headerFile.writeLine("std::string getMessage();");
+        headerFile.writeLine("#endif // HIGGS_BOSON_HELPER_H");
 
         // Close the C++ header file
         headerFile.close();
@@ -77,22 +77,21 @@ bool writeHiggsProjectFiles(const std::string& projectPath, bool isLibrary)
 
     // Open the Header Source file
     bool headerSourceFileWritten = false;
-    std::ofstream headerSourceFile;
-    headerSourceFile.open(projectPath + "/src/TestProj/helper.cpp");
-    if (headerSourceFile.is_open())
+    auto headerSourceFile = FileWriter(projectPath + "/src/TestProj/helper.cpp");
+    if (headerSourceFile.isOpen())
     {
 
         // Write-in the C++ header source file information
-        headerSourceFile << "#include <TestProj/helper.h>" << std::endl;
-        headerSourceFile << "#include <leveldb/db.h>" << std::endl;
-        headerSourceFile << "std::string getMessage() {" << std::endl;
-        headerSourceFile << "    leveldb::DB* db;" << std::endl;
-        headerSourceFile << "    leveldb::Options options;" << std::endl;
-        headerSourceFile << "    options.create_if_missing = true;" << std::endl;
-        headerSourceFile << "    leveldb::Status status = leveldb::DB::Open(options, \"/tmp/testdb\", &db);" << std::endl;
-        headerSourceFile << "    assert(status.ok());" << std::endl;
-        headerSourceFile << "    return \"Hello World!\";" << std::endl;
-        headerSourceFile << "};" << std::endl;
+        headerSourceFile.writeLine("#include <TestProj/helper.h>");
+        headerSourceFile.writeLine("#include <leveldb/db.h>");
+        headerSourceFile.writeLine("std::string getMessage() {");
+        headerSourceFile.writeLine("    leveldb::DB* db;");
+        headerSourceFile.writeLine("    leveldb::Options options;");
+        headerSourceFile.writeLine("    options.create_if_missing = true;");
+        headerSourceFile.writeLine("    leveldb::Status status = leveldb::DB::Open(options, \"/tmp/testdb\", &db);");
+        headerSourceFile.writeLine("    assert(status.ok());");
+        headerSourceFile.writeLine("    return \"Hello World!\";");
+        headerSourceFile.writeLine("};");
 
         // Close the C++ header source file
         headerSourceFile.close();
@@ -107,15 +106,14 @@ bool writeHiggsProjectFiles(const std::string& projectPath, bool isLibrary)
     {
 
         // Open the CPP file
-        std::ofstream cppFile;
-        cppFile.open(projectPath + "/src/TestProj/main.cpp");
-        if (cppFile.is_open())
+        auto cppFile = FileWriter(projectPath + "/src/TestProj/main.cpp");
+        if (cppFile.isOpen())
         {
 
             // Write-in the C++ source file information
-            cppFile << "#include <iostream>" << std::endl;
-            cppFile << "#include <TestProj/helper.h>" << std::endl;
-            cppFile << "int main() { std::cout << getMessage(); return 0; };" << std::endl;
+            cppFile.writeLine("#include <iostream>");
+            cppFile.writeLine("#include <TestProj/helper.h>");
+            cppFile.writeLine("int main() { std::cout << getMessage(); return 0; };");
 
             // Close the C++ file
             cppFile.close();
@@ -127,18 +125,17 @@ bool writeHiggsProjectFiles(const std::string& projectPath, bool isLibrary)
 
     // Open the testing file
     bool teestingFileWritten = false;
-    std::ofstream testFile;
-    testFile.open(projectPath + "/test/TestProj/helper.test.hpp");
-    if (testFile.is_open())
+    auto testFile = FileWriter(projectPath + "/test/TestProj/helper.test.hpp");
+    if (testFile.isOpen())
     {
 
         // Write-in the C++ testing file information
-        testFile << "#ifndef HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
-        testFile << "#define HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
-        testFile << "#include <string>" << std::endl;
-        testFile << "#include <TestProj/helper.h>" << std::endl;
-        testFile << "TEST_CASE (\"Test1\", \"[TestSect1]\") { REQUIRE (getMessage() == \"Hello World!\"); }" << std::endl;
-        testFile << "#endif // HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
+        testFile.writeLine("#ifndef HIGGS_BOSON_HELPER_TEST_HPP");
+        testFile.writeLine("#define HIGGS_BOSON_HELPER_TEST_HPP");
+        testFile.writeLine("#include <string>");
+        testFile.writeLine("#include <TestProj/helper.h>");
+        testFile.writeLine("TEST_CASE (\"Test1\", \"[TestSect1]\") { REQUIRE (getMessage() == \"Hello World!\"); }");
+        testFile.writeLine("#endif // HIGGS_BOSON_HELPER_TEST_HPP");
 
         // Close the C++ testing file
         testFile.close();
@@ -166,56 +163,55 @@ bool writeHiggsConfig(const std::string& confPath, bool isLibrary)
     bool retFlag = false;
 
     // Open the configuration file
-    std::ofstream higgsConfFile;
-    higgsConfFile.open(confPath);
-    if (higgsConfFile.is_open())
+    auto higgsConfFile = FileWriter(confPath);
+    if (higgsConfFile.isOpen())
     {
 
         // Write-in the standard Higgs-Boson header for the configuration file
-        higgsConfFile << "project:" << std::endl;
+        higgsConfFile.writeLine("project:");
         if (isLibrary)
-            higgsConfFile << "  type: lib" << std::endl;
+            higgsConfFile.writeLine("  type: lib");
         else
-            higgsConfFile << "  type: exe" << std::endl;
-        higgsConfFile << "  name: TestProj" << std::endl;
-        higgsConfFile << "  version: 1.0.0" << std::endl;
-        higgsConfFile << "  source: src" << std::endl;
-        higgsConfFile << "  test: test" << std::endl;
+            higgsConfFile.writeLine("  type: exe");
+        higgsConfFile.writeLine("  name: TestProj");
+        higgsConfFile.writeLine("  version: 1.0.0");
+        higgsConfFile.writeLine("  source: src");
+        higgsConfFile.writeLine("  test: test");
         if (!isLibrary)
-            higgsConfFile << "  main: src/TestProj/main.cpp" << std::endl;
-        higgsConfFile << "  targets:" << std::endl;
-        higgsConfFile << "    - linux-x86" << std::endl;
-        higgsConfFile << "dependencies:" << std::endl;
-        higgsConfFile << "  - name: leveldb" << std::endl;
-        higgsConfFile << "    source: git" << std::endl;
-        higgsConfFile << "    url:  git://github.com/bitboson-deps/leveldb.git" << std::endl;
-        higgsConfFile << "    rev: 1.22" << std::endl;
-        higgsConfFile << "    type: manual" << std::endl;
-        higgsConfFile << "    target linux-x86:" << std::endl;
-        higgsConfFile << "      build:" << std::endl;
-        higgsConfFile << "        - mkdir -p build" << std::endl;
-        higgsConfFile << "        - cd build" << std::endl;
-        higgsConfFile << "        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 .." << std::endl;
-        higgsConfFile << "        - make leveldb" << std::endl;
-        higgsConfFile << "      libs:" << std::endl;
-        higgsConfFile << "        - build/libleveldb.so.1" << std::endl;
-        higgsConfFile << "      include:" << std::endl;
-        higgsConfFile << "        - include/leveldb" << std::endl;
-        higgsConfFile << "    target any:" << std::endl;
-        higgsConfFile << "      build:" << std::endl;
-        higgsConfFile << "        - mkdir -p build" << std::endl;
-        higgsConfFile << "        - cd build" << std::endl;
-        higgsConfFile << "        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 .." << std::endl;
-        higgsConfFile << "        - make leveldb" << std::endl;
-        higgsConfFile << "      libs:" << std::endl;
-        higgsConfFile << "        - build/libleveldb.${LIB_EXT}.1" << std::endl;
-        higgsConfFile << "      include:" << std::endl;
-        higgsConfFile << "        - include/leveldb" << std::endl;
-        higgsConfFile << "  - name: testdep" << std::endl;
-        higgsConfFile << "    source: git" << std::endl;
-        higgsConfFile << "    url:  git://github.com/bitboson-deps/TestDependency.git" << std::endl;
-        higgsConfFile << "    rev: 6203c62577ae90f09fdaaaa6a953823822b3996d" << std::endl;
-        higgsConfFile << "    type: higgs-boson" << std::endl;
+            higgsConfFile.writeLine("  main: src/TestProj/main.cpp");
+        higgsConfFile.writeLine("  targets:");
+        higgsConfFile.writeLine("    - linux-x86");
+        higgsConfFile.writeLine("dependencies:");
+        higgsConfFile.writeLine("  - name: leveldb");
+        higgsConfFile.writeLine("    source: git");
+        higgsConfFile.writeLine("    url:  git://github.com/bitboson-deps/leveldb.git");
+        higgsConfFile.writeLine("    rev: 1.22");
+        higgsConfFile.writeLine("    type: manual");
+        higgsConfFile.writeLine("    target linux-x86:");
+        higgsConfFile.writeLine("      build:");
+        higgsConfFile.writeLine("        - mkdir -p build");
+        higgsConfFile.writeLine("        - cd build");
+        higgsConfFile.writeLine("        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 ..");
+        higgsConfFile.writeLine("        - make leveldb");
+        higgsConfFile.writeLine("      libs:");
+        higgsConfFile.writeLine("        - build/libleveldb.so.1");
+        higgsConfFile.writeLine("      include:");
+        higgsConfFile.writeLine("        - include/leveldb");
+        higgsConfFile.writeLine("    target any:");
+        higgsConfFile.writeLine("      build:");
+        higgsConfFile.writeLine("        - mkdir -p build");
+        higgsConfFile.writeLine("        - cd build");
+        higgsConfFile.writeLine("        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 ..");
+        higgsConfFile.writeLine("        - make leveldb");
+        higgsConfFile.writeLine("      libs:");
+        higgsConfFile.writeLine("        - build/libleveldb.${LIB_EXT}.1");
+        higgsConfFile.writeLine("      include:");
+        higgsConfFile.writeLine("        - include/leveldb");
+        higgsConfFile.writeLine("  - name: testdep");
+        higgsConfFile.writeLine("    source: git");
+        higgsConfFile.writeLine("    url:  git://github.com/bitboson-deps/TestDependency.git");
+        higgsConfFile.writeLine("    rev: 6203c62577ae90f09fdaaaa6a953823822b3996d");
+        higgsConfFile.writeLine("    type: higgs-boson");
 
         // Close the configuration file
         higgsConfFile.close();
@@ -372,7 +368,7 @@ TEST_CASE ("General Test Higgs-Boson Test", "[HiggsBosonTest]")
     REQUIRE (writeHiggsConfig("/tmp/higgs-boson/higgs-boson.test.yaml", false));
 
     // Test setting the run-type to "sh" manually
-    HiggsBoson::RunTypeSingleton::setRunTypeCommand("sh");
+    HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
 
     // Setup a Higgs-Boson instance based on the reference files
     auto higgs = HiggsBoson("/tmp/higgs-boson", "/tmp/higgs-boson/higgs-boson.test.yaml",

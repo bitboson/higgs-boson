@@ -24,6 +24,7 @@
 
 #include <catch.hpp>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
+#include <BitBoson/HiggsBoson/Utils/FileWriter.h>
 #include <BitBoson/HiggsBoson/Configuration/Configuration.h>
 
 using namespace BitBoson;
@@ -48,17 +49,16 @@ bool writeConfig(const std::string& projectPath, const std::string& configFile)
 
     // Open the Header file
     bool headerFileWritten = false;
-    std::ofstream headerFile;
-    headerFile.open(projectPath + "/src/TestProj/helper.h");
-    if (headerFile.is_open())
+    auto headerFile = FileWriter(projectPath + "/src/TestProj/helper.h");
+    if (headerFile.isOpen())
     {
 
         // Write-in the C++ header file information
-        headerFile << "#include <string>" << std::endl;
-        headerFile << "#ifndef HIGGS_BOSON_HELPER_H" << std::endl;
-        headerFile << "#define HIGGS_BOSON_HELPER_H" << std::endl;
-        headerFile << "std::string getMessage();" << std::endl;
-        headerFile << "#endif // HIGGS_BOSON_HELPER_H" << std::endl;
+        headerFile.writeLine("#include <string>");
+        headerFile.writeLine("#ifndef HIGGS_BOSON_HELPER_H");
+        headerFile.writeLine("#define HIGGS_BOSON_HELPER_H");
+        headerFile.writeLine("std::string getMessage();");
+        headerFile.writeLine("#endif // HIGGS_BOSON_HELPER_H");
 
         // Close the C++ header file
         headerFile.close();
@@ -69,14 +69,13 @@ bool writeConfig(const std::string& projectPath, const std::string& configFile)
 
     // Open the Header Source file
     bool headerSourceFileWritten = false;
-    std::ofstream headerSourceFile;
-    headerSourceFile.open(projectPath + "/src/TestProj/helper.cpp");
-    if (headerSourceFile.is_open())
+    auto headerSourceFile = FileWriter(projectPath + "/src/TestProj/helper.cpp");
+    if (headerSourceFile.isOpen())
     {
 
         // Write-in the C++ header source file information
-        headerSourceFile << "#include <TestProj/helper.h>" << std::endl;
-        headerSourceFile << "std::string getMessage() { return \"Hello World!\"; };" << std::endl;
+        headerSourceFile.writeLine("#include <TestProj/helper.h>");
+        headerSourceFile.writeLine("std::string getMessage() { return \"Hello World!\"; };");
 
         // Close the C++ header source file
         headerSourceFile.close();
@@ -87,15 +86,14 @@ bool writeConfig(const std::string& projectPath, const std::string& configFile)
 
     // Open the CPP file
     bool cppFileWritten = false;
-    std::ofstream cppFile;
-    cppFile.open(projectPath + "/src/TestProj/main.cpp");
-    if (cppFile.is_open())
+    auto cppFile = FileWriter(projectPath + "/src/TestProj/main.cpp");
+    if (cppFile.isOpen())
     {
 
         // Write-in the C++ source file information
-        cppFile << "#include <iostream>" << std::endl;
-        cppFile << "#include <TestProj/helper.h>" << std::endl;
-        cppFile << "int main() { std::cout << getMessage(); return 0; };" << std::endl;
+        cppFile.writeLine("#include <iostream>");
+        cppFile.writeLine("#include <TestProj/helper.h>");
+        cppFile.writeLine("int main() { std::cout << getMessage(); return 0; };");
 
         // Close the C++ file
         cppFile.close();
@@ -106,18 +104,17 @@ bool writeConfig(const std::string& projectPath, const std::string& configFile)
 
     // Open the testing file
     bool teestingFileWritten = false;
-    std::ofstream testFile;
-    testFile.open(projectPath + "/test/TestProj/helper.test.hpp");
-    if (testFile.is_open())
+    auto testFile = FileWriter(projectPath + "/test/TestProj/helper.test.hpp");
+    if (testFile.isOpen())
     {
 
         // Write-in the C++ testing file information
-        testFile << "#ifndef HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
-        testFile << "#define HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
-        testFile << "#include <string>" << std::endl;
-        testFile << "#include <TestProj/helper.h>" << std::endl;
-        testFile << "TEST_CASE (\"Test1\", \"[TestSect1]\") { REQUIRE (getMessage() == \"Hello World!\"); }" << std::endl;
-        testFile << "#endif // HIGGS_BOSON_HELPER_TEST_HPP" << std::endl;
+        testFile.writeLine("#ifndef HIGGS_BOSON_HELPER_TEST_HPP");
+        testFile.writeLine("#define HIGGS_BOSON_HELPER_TEST_HPP");
+        testFile.writeLine("#include <string>");
+        testFile.writeLine("#include <TestProj/helper.h>");
+        testFile.writeLine("TEST_CASE (\"Test1\", \"[TestSect1]\") { REQUIRE (getMessage() == \"Hello World!\"); }");
+        testFile.writeLine("#endif // HIGGS_BOSON_HELPER_TEST_HPP");
 
         // Close the C++ testing file
         testFile.close();
@@ -128,55 +125,54 @@ bool writeConfig(const std::string& projectPath, const std::string& configFile)
 
     // Open the configuration file
     bool configWritten = false;
-    std::ofstream higgsConfFile;
     std::string confPath = projectPath + "/" + configFile;
-    higgsConfFile.open(confPath);
-    if (higgsConfFile.is_open())
+    auto higgsConfFile = FileWriter(confPath);
+    if (higgsConfFile.isOpen())
     {
 
         // Write-in the standard Higgs-Boson header for the configuration file
-        higgsConfFile << "project:" << std::endl;
-        higgsConfFile << "  type: exe" << std::endl;
-        higgsConfFile << "  name: higgs-boson" << std::endl;
-        higgsConfFile << "  version: 1.0.0" << std::endl;
-        higgsConfFile << "  source: src" << std::endl;
-        higgsConfFile << "  test: test" << std::endl;
-        higgsConfFile << "  main: src/TestProj/main.cpp" << std::endl;
-        higgsConfFile << "  targets:" << std::endl;
-        higgsConfFile << "    - default" << std::endl;
-        higgsConfFile << "commands:" << std::endl;
-        higgsConfFile << "  test:" << std::endl;
-        higgsConfFile << "    pre:" << std::endl;
-        higgsConfFile << "      - touch /tmp/higgs-boson/cmd1" << std::endl;
-        higgsConfFile << "      - touch /tmp/higgs-boson/cmd2" << std::endl;
-        higgsConfFile << "    post:" << std::endl;
-        higgsConfFile << "      - touch /tmp/higgs-boson/cmd3" << std::endl;
-        higgsConfFile << "  build:" << std::endl;
-        higgsConfFile << "    pre:" << std::endl;
-        higgsConfFile << "      - touch /tmp/higgs-boson/cmd4" << std::endl;
-        higgsConfFile << "    post:" << std::endl;
-        higgsConfFile << "      - touch /tmp/higgs-boson/cmd5" << std::endl;
-        higgsConfFile << "dependencies:" << std::endl;
-        higgsConfFile << "  - name: restbed" << std::endl;
-        higgsConfFile << "    source: git" << std::endl;
-        higgsConfFile << "    url:  git://github.com/bitboson-deps/restbed.git" << std::endl;
-        higgsConfFile << "    rev: 4.6" << std::endl;
-        higgsConfFile << "    type: manual" << std::endl;
-        higgsConfFile << "    target default:" << std::endl;
-        higgsConfFile << "      build:" << std::endl;
-        higgsConfFile << "        - mkdir -p build" << std::endl;
-        higgsConfFile << "        - cd build" << std::endl;
-        higgsConfFile << "        - cmake -DBUILD_SSL=NO" << std::endl;
-        higgsConfFile << "                -DBUILD_TESTS=NO" << std::endl;
-        higgsConfFile << "                -DBUILD_STATIC=NO" << std::endl;
-        higgsConfFile << "                -DBUILD_SHARED=ON .." << std::endl;
-        higgsConfFile << "        - make" << std::endl;
-        higgsConfFile << "      libs:" << std::endl;
-        higgsConfFile << "        - build/librestbed.so.4" << std::endl;
-        higgsConfFile << "  - name: restbed2" << std::endl;
-        higgsConfFile << "    source: curl" << std::endl;
-        higgsConfFile << "    url: https://raw.githubusercontent.com/bitboson-deps/restbed/4.6/source/corvusoft/restbed/http.hpp" << std::endl;
-        higgsConfFile << "    type: manual" << std::endl;
+        higgsConfFile.writeLine("project:");
+        higgsConfFile.writeLine("  type: exe");
+        higgsConfFile.writeLine("  name: higgs-boson");
+        higgsConfFile.writeLine("  version: 1.0.0");
+        higgsConfFile.writeLine("  source: src");
+        higgsConfFile.writeLine("  test: test");
+        higgsConfFile.writeLine("  main: src/TestProj/main.cpp");
+        higgsConfFile.writeLine("  targets:");
+        higgsConfFile.writeLine("    - default");
+        higgsConfFile.writeLine("commands:");
+        higgsConfFile.writeLine("  test:");
+        higgsConfFile.writeLine("    pre:");
+        higgsConfFile.writeLine("      - touch /tmp/higgs-boson/cmd1");
+        higgsConfFile.writeLine("      - touch /tmp/higgs-boson/cmd2");
+        higgsConfFile.writeLine("    post:");
+        higgsConfFile.writeLine("      - touch /tmp/higgs-boson/cmd3");
+        higgsConfFile.writeLine("  build:");
+        higgsConfFile.writeLine("    pre:");
+        higgsConfFile.writeLine("      - touch /tmp/higgs-boson/cmd4");
+        higgsConfFile.writeLine("    post:");
+        higgsConfFile.writeLine("      - touch /tmp/higgs-boson/cmd5");
+        higgsConfFile.writeLine("dependencies:");
+        higgsConfFile.writeLine("  - name: restbed");
+        higgsConfFile.writeLine("    source: git");
+        higgsConfFile.writeLine("    url:  git://github.com/bitboson-deps/restbed.git");
+        higgsConfFile.writeLine("    rev: 4.6");
+        higgsConfFile.writeLine("    type: manual");
+        higgsConfFile.writeLine("    target default:");
+        higgsConfFile.writeLine("      build:");
+        higgsConfFile.writeLine("        - mkdir -p build");
+        higgsConfFile.writeLine("        - cd build");
+        higgsConfFile.writeLine("        - cmake -DBUILD_SSL=NO");
+        higgsConfFile.writeLine("                -DBUILD_TESTS=NO");
+        higgsConfFile.writeLine("                -DBUILD_STATIC=NO");
+        higgsConfFile.writeLine("                -DBUILD_SHARED=ON ..");
+        higgsConfFile.writeLine("        - make");
+        higgsConfFile.writeLine("      libs:");
+        higgsConfFile.writeLine("        - build/librestbed.so.4");
+        higgsConfFile.writeLine("  - name: restbed2");
+        higgsConfFile.writeLine("    source: curl");
+        higgsConfFile.writeLine("    url: https://raw.githubusercontent.com/bitboson-deps/restbed/4.6/source/corvusoft/restbed/http.hpp");
+        higgsConfFile.writeLine("    type: manual");
 
         // Close the configuration file
         higgsConfFile.close();
