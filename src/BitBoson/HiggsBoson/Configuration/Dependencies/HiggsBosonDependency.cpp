@@ -154,9 +154,9 @@ bool HiggsBosonDependency::setupFromConfig(const std::string& dir, const std::st
         for (std::string target : getTargetsFromConfig(higgsConfig))
             _internalDep->setBuildSteps(target,
                     {
-                        "higgs-boson download internal",
-                        "higgs-boson build-deps internal " + target,
-                        "higgs-boson build internal " + target,
+                        "higgs-boson-internal download internal",
+                        "higgs-boson-internal build-deps internal " + target,
+                        "higgs-boson-internal build internal " + target,
                     });
     }
 

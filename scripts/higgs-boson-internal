@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # This is intended for internal use for Higgs-Boson containers to isolate dependencies
-LD_LIBRARY_PATH="/home/higgs-boson/higgs-boson/output/manual/deps:/home/higgs-boson/higgs-boson/output/manual/lib:${LD_LIBRARY_PATH}" /home/higgs-boson/higgs-boson/output/manual/bin/higgs-boson $@
+LD_LIBRARY_PATH="/home/higgs-boson/higgs-boson/output/manual/deps:/home/higgs-boson/higgs-boson/output/manual/lib" /home/higgs-boson/higgs-boson/output/manual/bin/higgs-boson $@
