@@ -217,7 +217,7 @@ bool HiggsBoson::buildProject(const std::string& target)
                 packageScript.close();
 
                 // Execute the written package script for the generated artifacts
-                retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer("Packaging Artifacts for " + projectName,
+                retFlag = HiggsBoson::RunTypeSingleton::executeInContainer("Packaging Artifacts for " + projectName,
                         "bash " + packageScriptPath);
 
                 // Ensure that the package was written successfully before closing-down the container

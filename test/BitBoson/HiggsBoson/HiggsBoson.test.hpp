@@ -255,13 +255,13 @@ TEST_CASE ("General Executable Higgs-Boson Test", "[HiggsBosonTest]")
     // Build the external dependencies and validate the output
     REQUIRE (higgs.buildDependencies("default"));
     std::string libraryPath = "/tmp/higgs-boson/config/output/default/leveldb/libleveldb.so.1";
-    std::string libraryHash = "93aebe4ea4888735cc993ca2c921fa6a65a9178cf2e2cba3760f7d7f9c9644e5";
+    std::string libraryHash = "0a72e8e68e1923b7c817c56f9b3cfef6b42732f768874ab6f45a2077a0b2b32f";
     REQUIRE (ExecShell::exec("sha256sum " + libraryPath) == (libraryHash + "  " + libraryPath + "\n"));
 
     // Build the main project and validate the output
     REQUIRE (higgs.buildProject("default"));
     std::string exeOutputPath = "/tmp/higgs-boson/output/default/bin/TestProj";
-    std::string exeOutputHash = "8ffb83934adee9488e915dcc00c5a43e19ee980380d0e0add46ffd1bf706e575";
+    std::string exeOutputHash = "62452abb6aae4799da27c9e330af658d3ba4dc5e127ad048d780c5e7dc9671b8";
     REQUIRE (ExecShell::exec("sha256sum " + exeOutputPath) == (exeOutputHash + "  " + exeOutputPath + "\n"));
     std::string libraryPathOutput = "/tmp/higgs-boson/output/default/deps/libleveldb.so.1";
     REQUIRE (ExecShell::exec("sha256sum " + libraryPathOutput) == (libraryHash + "  " + libraryPathOutput + "\n"));
@@ -301,13 +301,13 @@ TEST_CASE ("General Library Higgs-Boson Test", "[HiggsBosonTest]")
     // Build the external dependencies and validate the output
     REQUIRE (higgs.buildDependencies("default"));
     std::string libraryPath = "/tmp/higgs-boson/config/output/default/leveldb/libleveldb.so.1";
-    std::string libraryHash = "93aebe4ea4888735cc993ca2c921fa6a65a9178cf2e2cba3760f7d7f9c9644e5";
+    std::string libraryHash = "0a72e8e68e1923b7c817c56f9b3cfef6b42732f768874ab6f45a2077a0b2b32f";
     REQUIRE (ExecShell::exec("sha256sum " + libraryPath) == (libraryHash + "  " + libraryPath + "\n"));
 
     // Build the main project and validate the output
     REQUIRE (higgs.buildProject("default"));
     std::string libOutputPath = "/tmp/higgs-boson/output/default/lib/libTestProj.so";
-    std::string libOutputHash = "1d60766f6195baadaccdd4acef566ff40532a8a97a2d966bf51fc78bf036e8c6";
+    std::string libOutputHash = "e7b2b619aea3c03f2cbf9357d88c431f7213bcb42680f16d7b28d726477296b1";
     REQUIRE (ExecShell::exec("sha256sum " + libOutputPath) == (libOutputHash + "  " + libOutputPath + "\n"));
     std::string libraryPathOutput = "/tmp/higgs-boson/output/default/deps/libleveldb.so.1";
     REQUIRE (ExecShell::exec("sha256sum " + libraryPathOutput) == (libraryHash + "  " + libraryPathOutput + "\n"));
@@ -347,10 +347,10 @@ TEST_CASE ("Higgs-Boson Dependency Artifacts Test", "[HiggsBosonTest]")
     std::string headerHash = "a83e1b70aaeeb884b6bf41b106892f31f610677f8e8bf166961c26bce8d61e35";
     REQUIRE (ExecShell::exec("sha256sum " + headerPath) == (headerHash + "  " + headerPath + "\n"));
     std::string libraryPath = "/tmp/higgs-boson/config/external/raw/testdep/output/default/deps/libleveldb.so.1";
-    std::string libraryHash = "93aebe4ea4888735cc993ca2c921fa6a65a9178cf2e2cba3760f7d7f9c9644e5";
+    std::string libraryHash = "0a72e8e68e1923b7c817c56f9b3cfef6b42732f768874ab6f45a2077a0b2b32f";
     REQUIRE (ExecShell::exec("sha256sum " + libraryPath) == (libraryHash + "  " + libraryPath + "\n"));
     libraryPath = "/tmp/higgs-boson/config/external/raw/testdep/output/default/lib/libTestProj.so";
-    libraryHash = "a3acf40dbeb1cfd445d9b009e6ec5f43ee55defcf1c759cdddb46eb98df80fc8";
+    libraryHash = "8dca77b067ef73ea30d4904b4602b3a22f893da3d76c1e5672160a6744ebb73b";
     REQUIRE (ExecShell::exec("sha256sum " + libraryPath) == (libraryHash + "  " + libraryPath + "\n"));
 
     // Cleanup the temporary files
@@ -391,13 +391,13 @@ TEST_CASE ("General Test Higgs-Boson Test", "[HiggsBosonTest]")
     // Build the external dependencies and validate the output
     REQUIRE (higgs.buildDependencies("default"));
     std::string libraryPath = "/tmp/higgs-boson/config/output/default/leveldb/libleveldb.so.1";
-    std::string libraryHash = "93aebe4ea4888735cc993ca2c921fa6a65a9178cf2e2cba3760f7d7f9c9644e5";
+    std::string libraryHash = "0a72e8e68e1923b7c817c56f9b3cfef6b42732f768874ab6f45a2077a0b2b32f";
     REQUIRE (ExecShell::exec("sha256sum " + libraryPath) == (libraryHash + "  " + libraryPath + "\n"));
 
     // Build the main project and validate the output
     REQUIRE (higgs.testProject(CMakeSettings::TestType::TEST));
     std::string testExePath = "/tmp/higgs-boson/config/builds/test/bin/TestProj_test";
-    std::string testExeHash = "b95086cff4de93ba72ad9f30e7a6d22d64607ddc0f71c9c97836502e8fa05109";
+    std::string testExeHash = "dc9cc9fa6ef275ef72acf7e20ba7bed6bc8e5fceb45410474ce364f2e6ac87b8";
     REQUIRE (ExecShell::exec("sha256sum " + testExePath) == (testExeHash + "  " + testExePath + "\n"));
 
     // Cleanup the temporary files

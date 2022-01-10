@@ -357,7 +357,7 @@ TEST_CASE ("Run Coverage CMake Settings Test", "[CMakeSettingsTest]")
     REQUIRE (cMakeSettings.testCMakeProject(CMakeSettings::TestType::COVERAGE));
 
     // Verify the contents of the CMakeLists.txt file
-    std::string cMakeHash = "e08fc9bb23364512972a16c6078175c188c865b54ceea65a600c3590b862fcb4";
+    std::string cMakeHash = "4c565bf9e02ab6d1223c70236782538eb2282e91385bdb80f7023ddd82ffcd51";
     std::string cMakeFile = "/tmp/higgs-boson/test-proj/.higgs-boson/CMakeLists.txt";
     REQUIRE (ExecShell::exec("sha256sum " + cMakeFile) == (cMakeHash + "  " + cMakeFile + "\n"));
 
