@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
     // Use/setup docker-sync if it is installed (or configured to do so)
     bool dockerSyncInstalled = (ExecShell::exec("docker-sync --version")
             .find("command not found") == std::string::npos);
-    if (dockerSyncInstalled)
+    if (dockerSyncInstalled && (std::string(argv[1]) != "setup"))
         HiggsBoson::RunTypeSingleton::getDockerSync(currentPath, appCacheDir, projectDirHash);
 
     // Setup the Higgs-Boson configuration for the instance
