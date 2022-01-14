@@ -336,13 +336,16 @@ int main(int argc, char* argv[])
                 // (otherwise we'll assume locally)
                 bool buildingLocally = ((argc > 3) && (std::string(argv[3]) == "local"));
 
+                // Determine if we are building using an already packaged XCode SDK
+                bool isPrePackaged = ((argc > 3) && (std::string(argv[3]) == "packaged"));
+
                 // Extract the XCode file if not building locally
                 std::string xcodeFile;
                 if (!buildingLocally && (argc > 3) && !std::string(argv[3]).empty())
                     xcodeFile = std::string(argv[3]);
 
                 // Attempt to actually setup the OSX cross-build support
-                if (buildingLocally || !xcodeFile.empty())
+                if (!isPrePackaged && (buildingLocally || !xcodeFile.empty()))
                     handledOsxTarget = addOsxBuildSupport(xcodeFile,
                             currentPath, globalCacheDir, buildingLocally);
                 else

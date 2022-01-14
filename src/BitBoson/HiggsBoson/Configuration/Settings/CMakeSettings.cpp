@@ -683,6 +683,19 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile.writeLine("# Set Cross-Compilation Target Information");
             cMakeFile.writeLine("set(CMAKE_HOST_SYSTEM_NAME Linux)");
             cMakeFile.writeLine("set(CMAKE_SYSTEM_NAME $ENV{HIGGS_BOSON_TARGET_OS})");
+            cMakeFile.writeLine("set(CMAKE_CROSSCOMPILING ON)");
+            cMakeFile.writeLine("");
+            cMakeFile.writeLine("");
+
+            // Write in specifics to darwin (macos) related builds
+            cMakeFile.writeLine("# Specify specifics to darwin (macos) related builds");
+            cMakeFile.writeLine("if (CMAKE_SYSTEM_NAME STREQUAL darwin)");
+            cMakeFile.writeLine("    set(CMAKE_MACOSX_RPATH \"OFF\")");
+            cMakeFile.writeLine("    set(CMAKE_SHARED_LIBRARY_PREFIX \"lib\")");
+            cMakeFile.writeLine("    set(CMAKE_SHARED_LIBRARY_SUFFIX \".dylib\")");
+            cMakeFile.writeLine("    set(CMAKE_SHARED_LIBRARY_SONAME_C_FLAG \"-install_name \")");
+            cMakeFile.writeLine("endif()");
+            cMakeFile.writeLine("");
             cMakeFile.writeLine("");
 
             // Write-in the CMake source directories
