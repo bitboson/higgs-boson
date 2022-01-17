@@ -73,6 +73,9 @@ bool DockerSyncSettings::writeDockerSyncFile()
     // Create a return flag
     bool retFlag = false;
 
+    // Ensure that the cache directory exists
+    ExecShell::execLive("mkdir " + _projectCacheDir);
+
     // Open the docker-sync file
     auto dockerSyncFile = FileWriter(_projectCacheDir + "/docker-sync.yml", true);
     if (dockerSyncFile.isOpen())
