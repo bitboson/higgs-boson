@@ -187,8 +187,18 @@ std::string setupDockerImage(const std::string& target,
     if (target != "higgs-boson")
     {
 
+        // Determine if this is a darwin (macos) related container or not
+        bool isMacOsxTarget = false;
+        if ((target.find("apple") != std::string::npos)
+                || (target.find("darwin") != std::string::npos))
+            isMacOsxTarget = true;
+
+        // Ensure we setup init commands for MacOSX instances
+        if (isMacOsxTarget)
+            HiggsBoson::RunTypeSingleton::setDockerRunInitCommand("init-osx");
+
         // Build the docker image and setup the executable
-        ExecShell::execWithResponse("Building Docross Docker Image " + target,
+        ExecShell::execWithResponse("Building Docker Image " + target,
                 "cd " + globalCacheDir + "/dockcross"
                 + std::string(makeDockerContainer ? " && make " + target : "")
                 + " && echo \"docker run --name bitbosonhiggsbuilderprocess"
@@ -199,7 +209,8 @@ std::string setupDockerImage(const std::string& target,
                 + " && chmod +x ./bitboson-" + target);
 
         // Setup the return value accordingly
-        retVal = globalCacheDir + "/dockcross/bitboson-" + target + " bash";
+        retVal = globalCacheDir + "/dockcross/bitboson-" + target;
+        retVal += (std::string(isMacOsxTarget ? " init-osx" : "") + " bash");
     }
 
     // Return the return value

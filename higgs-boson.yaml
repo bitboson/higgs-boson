@@ -30,7 +30,8 @@ project:
   targets:
     - linux-x86
     - windows-shared-x86
-    - apple-darwin-x86_64
+    - apple-darwin-x64
+    - apple-darwin-arm64
 
 # Setup the project dependencies
 dependencies:

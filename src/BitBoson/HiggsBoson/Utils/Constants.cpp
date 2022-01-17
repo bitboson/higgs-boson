@@ -74,8 +74,9 @@ std::vector<std::string> Constants::getValidImages()
             "windows-static-x86",
 
             // Darwin-based targets
-            "apple-darwin-x86_64",
-            "apple-darwin-i386",
+            "apple-darwin-x64",
+            "apple-darwin-x86",
+            "apple-darwin-arm64"
     };
 }
 
@@ -143,8 +144,9 @@ std::string Constants::getTargetOsForImageTriple(const std::string& targetTriple
     }
 
     // Check if the target is android
-    std::set<std::string> darwinSet = {"apple-darwin-x86_64",
-                                       "apple-darwin-i386"};
+    std::set<std::string> darwinSet = {"apple-darwin-x64",
+                                       "apple-darwin-x86",
+                                       "apple-darwin-arm64"};
     if (darwinSet.find(targetTriple) != darwinSet.end()) {
         returnOsName = "darwin";
     }

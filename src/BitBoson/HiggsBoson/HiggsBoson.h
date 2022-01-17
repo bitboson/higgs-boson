@@ -46,6 +46,7 @@ namespace BitBoson
                 // Private member variables
                 private:
                     bool _isContainer;
+                    std::string _initCmd;
                     std::string _runCommand;
                     std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
@@ -74,6 +75,19 @@ namespace BitBoson
                         if (!getInstance()._runCommand.empty() && (getInstance()._runCommand != "bash")
                                 && (getInstance()._runCommand != "sh"))
                             getInstance()._isContainer = true;
+                    }
+
+                    /**
+                     * Static function used to set the run-type init command
+                     * for the Singleton instance
+                     *
+                     * @param initCommand String representing the initialization command
+                     */
+                    static void setDockerRunInitCommand(const std::string& initCommand)
+                    {
+
+                        // Simply set the run-type init command accordingly
+                        getInstance()._initCmd = initCommand;
                     }
 
                     /**
@@ -166,6 +180,10 @@ namespace BitBoson
                         if (getInstance()._isContainer)
                             containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
 
+                        // Add in the init command if applicable
+                        if (!containerCmd.empty())
+                            containerCmd += (getInstance()._initCmd + " ");
+
                         // Simply run the provided command in the Higgs-Boson builder container
                         return ExecShell::exec(containerCmd + command);
                     }
@@ -186,6 +204,10 @@ namespace BitBoson
                         if (getInstance()._isContainer)
                             containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
 
+                        // Add in the init command if applicable
+                        if (!containerCmd.empty())
+                            containerCmd += (getInstance()._initCmd + " ");
+
                         // Simply run the provided command in the Higgs-Boson builder container
                         return ExecShell::execWithResponse(message, containerCmd + command);
                     }
@@ -204,6 +226,10 @@ namespace BitBoson
                         std::string containerCmd = "";
                         if (getInstance()._isContainer)
                             containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+
+                        // Add in the init command if applicable
+                        if (!containerCmd.empty())
+                            containerCmd += (getInstance()._initCmd + " ");
 
                         // Simply run the provided command in the Higgs-Boson builder container
                         return ExecShell::execLive(containerCmd + command);

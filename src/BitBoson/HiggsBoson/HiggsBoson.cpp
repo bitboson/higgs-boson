@@ -205,6 +205,12 @@ bool HiggsBoson::buildProject(const std::string& target)
                     for (const auto& libraryFile : Utils::listFilesInDirectory(targetCacheDir + "/" + dependency->getName()))
                         packageScript.writeLine("cp " + libraryFile + " " + targetOutputDir + "/deps/");
 
+                // Copy plibsys library into the dependency directory as well
+                std::string plibsysLibraryPath = _cacheDir + "/builds/compile/" + target + "/libplibsys";
+                packageScript.writeLine("cp " + plibsysLibraryPath + ".so.*" + " " + targetOutputDir + "/deps/");
+                packageScript.writeLine("cp " + plibsysLibraryPath + ".dylib.*" + targetOutputDir + "/deps/");
+                packageScript.writeLine("cp " + plibsysLibraryPath + ".dll" + targetOutputDir + "/deps/");
+
                 // Compress the output files into the corresponding higgs-boson tar/package file
                 std::string projectName = _configuration->getProjectSettings()->getProjectName();
                 std::string projectVersion = _configuration->getProjectSettings()->getProjectVersion();
