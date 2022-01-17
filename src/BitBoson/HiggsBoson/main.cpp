@@ -299,6 +299,9 @@ int main(int argc, char* argv[])
             ? (currentPath + "/.higgs-boson")
             : (userHomePath + "/.higgs-boson"));
 
+    // Ensure that the cache directory exists
+    ExecShell::exec("mkdir -p " + appCacheDir);
+
     // Use/setup docker-sync if it is installed (or configured to do so)
     bool dockerSyncInstalled = (ExecShell::exec("docker-sync --version")
             .find("not found") == std::string::npos);
