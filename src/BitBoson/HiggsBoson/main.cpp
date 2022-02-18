@@ -170,7 +170,7 @@ std::string setupDockerImage(const std::string& target,
         // Build the docker image and setup the executable
         ExecShell::execWithResponse("Building Higgs-Boson Docker Image",
                 "cd " + globalCacheDir + "/dockcross"
-                + std::string(makeDockerContainer ? " && make higgs-boson" : "")
+                + std::string(makeDockerContainer ? " && TAG=latest make higgs-boson" : "")
                 + " && echo \"docker run --name bitbosonhiggsbuilderprocess"
                     + (interactive ? " --interactive" : "")
                     + " --rm -w " + projectDir
@@ -200,12 +200,12 @@ std::string setupDockerImage(const std::string& target,
         // Build the docker image and setup the executable
         ExecShell::execWithResponse("Building Docker Image " + target,
                 "cd " + globalCacheDir + "/dockcross"
-                + std::string(makeDockerContainer ? " && make " + target : "")
+                + std::string(makeDockerContainer ? " && TAG=latest make " + target : "")
                 + " && echo \"docker run --name bitbosonhiggsbuilderprocess"
                 + (interactive ? " --interactive" : "")
                 + " --rm -w " + projectDir
                 + " -v " + dockerSyncVolume + ":" + projectDir
-                + " -t dockcross/" + target + " \"\\$\\@\"\" > ./bitboson-" + target
+                + " -t bitboson/" + target + " \"\\$\\@\"\" > ./bitboson-" + target
                 + " && chmod +x ./bitboson-" + target);
 
         // Setup the return value accordingly
