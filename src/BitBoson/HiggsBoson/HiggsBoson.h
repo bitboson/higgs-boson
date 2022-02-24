@@ -54,11 +54,6 @@ namespace BitBoson
                 public:
 
                     /**
-                     * Destructor used to cleanup the Singleton Class
-                     */
-                    virtual ~RunTypeSingleton() = default;
-
-                    /**
                      * Static function used to set the run-type command
                      * for the Singleton instance
                      *
@@ -255,6 +250,16 @@ namespace BitBoson
 
                         // Return the configured docker-sync settings
                         return getInstance()._dockerSyncSettings;
+                    }
+
+                    /**
+                     * Destructor used to cleanup the Singleton Class
+                     */
+                    virtual ~RunTypeSingleton()
+                    {
+
+                        // Ensure the running container is stopped
+                        stopIdleContainer();
                     }
 
                 // Private member functions
