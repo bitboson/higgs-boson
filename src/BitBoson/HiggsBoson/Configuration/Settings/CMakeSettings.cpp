@@ -788,8 +788,8 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
 
             // Write-in the CMake coverages flags
             cMakeFile.writeLine("if(NOT CODE_COVERAGE)");
-            cMakeFile.writeLine("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -Wall -Werror\")");
-            cMakeFile.writeLine("    set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS}  -Wall -Werror\")");
+            cMakeFile.writeLine("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -Wall -Werror -Wno-deprecated-declarations\")");
+            cMakeFile.writeLine("    set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-deprecated-declarations\")");
             cMakeFile.writeLine("endif()");
             cMakeFile.writeLine("");
 
