@@ -274,7 +274,8 @@ int main(int argc, char* argv[])
         std::cout << "  debug                         Run the provided/desired tests in debugging mode" << std::endl;
         std::cout << "  coverage                      Run all tests and produce a code-coverage report (including html)" << std::endl;
         std::cout << "  sanitize <type**>             Run the provided/desired code sanitizer for code quality" << std::endl;
-        std::cout << "  cli <target>                  Run an interactive shell on the provided build container" << std::endl;
+        std::cout << "  cli <target*>                 Run an interactive shell on the provided build container" << std::endl;
+        std::cout << "  cmd <target*> <options>       Run generic commands (via bash) on the provided build container" << std::endl;
         std::cout << std::endl;
         std::cout << "*Possible targets depend on each individual project" << std::endl;
         std::cout << "**Test/Sanitize types include: address, behavior, thread, and leak" << std::endl;
@@ -554,6 +555,30 @@ int main(int argc, char* argv[])
         // Handle the case where no desired sanitizer was selected
         else
             std::cout << "A valid sanitizer must be chosen: address, behavior, thread, or leak" << std::endl;
+    }
+
+    // Handle all generic commands here
+    if ((argc > 1) && (std::string(argv[1]) == "cmd"))
+    {
+
+        // Determine the target we are setting-up (if provided)
+        std::string cliTarget = "higgs-boson";
+        if ((argc <= 2) || ((argc > 2) && (!std::string(argv[2]).empty())))
+            cliTarget = std::string(argv[2]);
+
+        // Setup the docker container for building files
+        HiggsBoson::RunTypeSingleton::setDockerRunCommand(
+                getRunTypeCommand(cliTarget, currentPath, globalCacheDir,
+                                  appCacheDir, projectDirHash));
+        HiggsBoson::RunTypeSingleton::runIdleContainer();
+
+        // Collect all remaining arguments to pass to the compiler
+        std::string commandInfo;
+        for (int ii = 3; ii < argc; ii++)
+            commandInfo += (std::string(argv[ii]) + std::string(" "));
+
+        // Actually handle the generic command here
+        HiggsBoson::RunTypeSingleton::executeInContainer(commandInfo);
     }
 
     // If we get here, return a successful return code
