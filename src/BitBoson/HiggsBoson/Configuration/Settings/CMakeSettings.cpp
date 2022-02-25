@@ -234,9 +234,13 @@ bool CMakeSettings::buildCMakeProject(const std::string& target)
     // Write-out the CMakeLists.txt file
     auto wroteFile = writeCMakeFile(false);
 
+    // Force a re-build by deleting the build directory itself
+    // NOTE: This is a current workaround and should be removed
+    HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " + _cMakeCacheDir + "/builds/compile/" + target);
+
     // Create the build directory for CMake to actually use
     if (wroteFile && HiggsBoson::RunTypeSingleton::executeInContainer(
-        "mkdir -p " + _cMakeCacheDir + "/builds/compile-" + target))
+        "mkdir -p " + _cMakeCacheDir + "/builds/compile/" + target))
     {
 
         // Write the build workflow for the specified target
@@ -720,10 +724,11 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile.writeLine("set(PLIBSYS_TARGET_OS, \"$ENV{HIGGS_BOSON_TARGET_OS}\")");
             cMakeFile.writeLine("set(PLIBSYS_TARGET_PLATFORM, \"$ENV{HIGGS_BOSON_TARGET_PLATFORM}\")");
             cMakeFile.writeLine("set(CMAKE_SYSTEM_PROCESSOR, \"$ENV{HIGGS_BOSON_TARGET_ARCH}\")");
-            cMakeFile.writeLine("add_subdirectory (${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson)");
+            //cMakeFile.writeLine("add_subdirectory (${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson)");
             cMakeFile.writeLine("include (${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson/platforms/$ENV{HIGGS_BOSON_TARGET_PLATFORM}/platform.cmake)");
             cMakeFile.writeLine("include (${HIGGS_PROJECT_CACHE}/external/raw/plibsyshiggsboson/cmake/PlatformDetect.cmake)");
             cMakeFile.writeLine("plibsys_detect_target_os ($ENV{HIGGS_BOSON_TARGET_PLATFORM})");
+            cMakeFile.writeLine("MESSAGE(STATUS \"Platform-Specific Compiler Flags: ${PLIBSYS_PLATFORM_LINK_LIBRARIES}\")");
             cMakeFile.writeLine("");
             cMakeFile.writeLine("");
 
@@ -870,8 +875,8 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             else
                 cMakeFile.writeLine("add_executable(${PROJECT_TARGET_MAIN} " + mainSourceFile);
             cMakeFile.writeLine("        ${${PROJECT_TARGET_MAIN}_sources} ${${PROJECT_TARGET_MAIN}_headers})");
-            cMakeFile.writeLine("add_dependencies(${PROJECT_TARGET_MAIN} plibsys)");
-            cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_MAIN} plibsys)");
+            //cMakeFile.writeLine("add_dependencies(${PROJECT_TARGET_MAIN} plibsys)");
+            //cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_MAIN} plibsys)");
             cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_MAIN} ${HIGGS_EXTERNAL_LIBS})");
             cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_MAIN} ${PLIBSYS_PLATFORM_LINK_LIBRARIES})");
             cMakeFile.writeLine("");
@@ -890,7 +895,7 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile.writeLine("");
 
             // Write-in the CMake Catch-testing setup information
-            cMakeFile.writeLine("# Prepare \"Catch\" library for otherexecutables");
+            cMakeFile.writeLine("# Prepare \"Catch\" library for other executables");
             cMakeFile.writeLine("set(TEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)");
             cMakeFile.writeLine("set(CATCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.higgs/external/raw/catch2higgsboson/single_include/catch2)");
             cMakeFile.writeLine("add_library(Catch INTERFACE)");
@@ -925,8 +930,8 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
 
             // Write-in the CMake testing target libraries information
             cMakeFile.writeLine("# Setup the test target");
-            cMakeFile.writeLine("add_dependencies(${PROJECT_TARGET_TEST} plibsys)");
-            cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_TEST} plibsys)");
+            //cMakeFile.writeLine("add_dependencies(${PROJECT_TARGET_TEST} plibsys)");
+            //cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_TEST} plibsys)");
             cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_TEST} ${HIGGS_EXTERNAL_LIBS})");
             cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_TEST} ${PLIBSYS_PLATFORM_LINK_LIBRARIES})");
             cMakeFile.writeLine("target_link_libraries(${PROJECT_TARGET_TEST} Catch)");
