@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Setup the default watch-dog configuration
+IS_BUMPING=0
+IS_PRINTING=0
+SLEEP_TIME=5
+WATCHDOG_TIME=60
+
+# Parse the command-line arguments
+for i in "$@"; do
+  case $1 in
+    -s|--sleep-time)
+      SLEEP_TIME="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -w|--watchdog-time)
+      WATCHDOG_TIME="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -b|--bump-timer)
+      IS_BUMPING=1
+      shift # past argument
+      ;;
+    -p|--print)
+      IS_PRINTING=1
+      shift # past argument
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+  esac
+done
+
+# If we are bumping the timer do so here
+if [ ${IS_BUMPING} -gt 0 ]; then
+    echo -n "${WATCHDOG_TIME}" > /tmp/watchdog/rose
+    exit 0
+fi
+
+# Write the initial watch-dog file with a specified time
+mkdir -p /tmp/watchdog/
+echo -n "${WATCHDOG_TIME}" > /tmp/watchdog/rose
+
+# Continuously read the value from the watch-dog file
+WATCH_DOG_TIMER=$(cat /tmp/watchdog/rose)
+while [ ${WATCH_DOG_TIMER} -gt 0 ]
+do
+
+    # Get the current watch-dog timer value
+    WATCH_DOG_TIMER=$(cat /tmp/watchdog/rose)
+    if [ ${IS_PRINTING} -gt 0 ]; then
+        echo "Watch-Dog Timer: ${WATCH_DOG_TIMER}"
+    fi
+
+    # Decrement the value and write it back
+    echo -n "$((WATCH_DOG_TIMER-SLEEP_TIME))" > /tmp/watchdog/rose
+
+    # Sleep for some pre-determined amount of time
+    sleep ${SLEEP_TIME}
+done
