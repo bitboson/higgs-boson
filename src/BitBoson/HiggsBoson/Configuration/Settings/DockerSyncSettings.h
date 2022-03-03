@@ -35,6 +35,7 @@ namespace BitBoson
             std::string _projectDir;
             std::string _projectCacheDir;
             std::string _projectDirHash;
+            std::string _containerName;
 
         // Public member functions
         public:
@@ -67,7 +68,7 @@ namespace BitBoson
             /**
              * Destructor used to cleanup the instance
              */
-            virtual ~DockerSyncSettings();
+            virtual ~DockerSyncSettings() = default;
 
         // Private member functions
         private:
@@ -79,6 +80,11 @@ namespace BitBoson
              * @return Boolean indcating whether the docker-sync file was written
              */
             bool writeDockerSyncFile();
+
+            /**
+             * Internal function used to remove orphaned/abandoned sync-containers
+             */
+            void removeOrphanedSyncContainers();
     };
 }
 

@@ -19,6 +19,9 @@
  *     - Tyler Parcell <OriginLegend>
  */
 
+#include <unordered_map>
+#include <BitBoson/HiggsBoson/Utils/Utils.h>
+#include <BitBoson/HiggsBoson/Utils/Constants.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Utils/FileWriter.h>
 #include <BitBoson/HiggsBoson/Configuration/Settings/DockerSyncSettings.h>
@@ -40,13 +43,18 @@ DockerSyncSettings::DockerSyncSettings(const std::string& projectDir,
     _projectDir = projectDir;
     _projectCacheDir = projectCacheDir;
     _projectDirHash = projectDirHash;
+    _containerName = Constants::DOCKER_SYNC_PREFIX + _projectDirHash;
 
     // Write-out the docker-sync configuration
     writeDockerSyncFile();
 
     // Start the docker-sync process (after cleanup)
     ExecShell::execWithResponse("Starting docker-sync process",
-            "cd " + _projectCacheDir + " && docker-sync start");
+            "cd " + _projectCacheDir + " && docker-sync start --app_name " + _containerName);
+
+    // We also want to take this opportunity to remove any existing
+    // sync containers without a corresponding builder container
+    removeOrphanedSyncContainers();
 }
 
 /**
@@ -58,7 +66,7 @@ std::string DockerSyncSettings::getVolume()
 {
 
     // Simply construct and return the docker-sync volume name
-    return _projectDirHash + "-sync";
+    return _containerName;
 }
 
 /**
@@ -87,7 +95,7 @@ bool DockerSyncSettings::writeDockerSyncFile()
         dockerSyncFile.writeLine("# Docker-sync volume information");
         dockerSyncFile.writeLine("version: \"2\"");
         dockerSyncFile.writeLine("syncs:");
-        dockerSyncFile.writeLine("  " + _projectDirHash + "-sync:");
+        dockerSyncFile.writeLine("  " + _containerName + ":");
         dockerSyncFile.writeLine("    src: '" + _projectDir + "'");
         dockerSyncFile.writeLine("    sync_userid: 1000");
         dockerSyncFile.writeLine("");
@@ -104,12 +112,49 @@ bool DockerSyncSettings::writeDockerSyncFile()
 }
 
 /**
- * Destructor used to cleanup the instance
+ * Internal function used to remove orphaned/abandoned sync-containers
  */
-DockerSyncSettings::~DockerSyncSettings()
+void DockerSyncSettings::removeOrphanedSyncContainers()
 {
 
-    // Stop and cleanup the docker-sync process on destruction
-    ExecShell::execWithResponse("Stopping docker-sync process",
-            "cd " + _projectCacheDir + " && docker-sync stop");
+    // Start by finding all sync and build containers which are running
+    std::string dockerPsCmd = "docker ps --format \"{{.Names}}\" | grep higgsboson";
+    std::unordered_map<std::string, std::string> syncContainers = {};
+    std::unordered_map<std::string, std::string> builderContainers = {};
+    for (std::string containerName : Utils::splitStringByDelimiter(ExecShell::exec(dockerPsCmd), '\n'))
+    {
+
+        // Verify that this container name has a dash ("-") in it
+        auto splitResult = Utils::splitStringByDelimiter(containerName, '-');
+        if (splitResult.size() > 1)
+        {
+
+            // Extract the hash from the container name
+            auto containerHash = splitResult[1];
+
+            // Determine if this container is a sync container and note its existence
+            auto isDockerSync = std::mismatch(Constants::DOCKER_SYNC_PREFIX.begin(),
+                                              Constants::DOCKER_SYNC_PREFIX.end(),
+                                              containerName.begin());
+            if (isDockerSync.first == Constants::DOCKER_SYNC_PREFIX.end())
+                syncContainers[containerHash] = containerName;
+
+            // Determine if this container is a builder container and note its existence
+            auto isDockerBuilder = std::mismatch(Constants::DOCKER_HIGGS_BUILDER_PREFIX.begin(),
+                                                 Constants::DOCKER_HIGGS_BUILDER_PREFIX.end(),
+                                                 containerName.begin());
+            if (isDockerBuilder.first == Constants::DOCKER_HIGGS_BUILDER_PREFIX.end())
+                builderContainers[containerHash] = containerName;
+        }
+    }
+
+    // Next find all sync containers without a corresponding build container
+    std::vector<std::string> orphanedSyncContainers = {};
+    for (auto syncContainerItem : syncContainers)
+        if (builderContainers[syncContainerItem.first].empty())
+            orphanedSyncContainers.push_back(syncContainerItem.second);
+
+    // Finally, stop all orphaned sync container processes
+    for (auto syncContainerName : orphanedSyncContainers)
+        ExecShell::exec("docker-sync stop --app_name " + syncContainerName);
 }

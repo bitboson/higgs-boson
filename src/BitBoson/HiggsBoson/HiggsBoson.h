@@ -25,6 +25,7 @@
 #include <string>
 #include <memory>
 #include <thread>
+#include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Configuration/Configuration.h>
 #include <BitBoson/HiggsBoson/Configuration/Dependencies/Dependency.h>
@@ -48,6 +49,7 @@ namespace BitBoson
                     bool _isContainer;
                     std::string _initCmd;
                     std::string _runCommand;
+                    std::string _containerName;
                     std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
                 // Public member functions
@@ -59,12 +61,13 @@ namespace BitBoson
                      *
                      * @param command String representing the command
                      */
-                    static void setDockerRunCommand(const std::string& command)
+                    static void setDockerRunCommand(const std::string& command, const std::string& containerName="")
                     {
 
                         // Simply set the run-type command accordingly
                         getInstance()._isContainer = false;
                         getInstance()._runCommand = command;
+                        getInstance()._containerName = containerName;
 
                         // Determine if this command is for a container or not
                         if (!getInstance()._runCommand.empty() && (getInstance()._runCommand != "bash")
@@ -108,17 +111,29 @@ namespace BitBoson
                         if (getInstance()._isContainer)
                         {
 
-                            // Start by executing the container run process
-                            ExecShell::exec(getInstance()._runCommand, true);
+                            // Check if the container is already running and only
+                            // start the container if it is not already running
+                            bool containerIsRunning = false;
+                            std::string dockerPsCmd = "docker ps --format \"{{.Names}}\" | grep higgsboson | grep "
+                                    + getInstance()._containerName;
+                            for (std::string containerName : Utils::splitStringByDelimiter(ExecShell::exec(dockerPsCmd), '\n'))
+                                if (containerName == getInstance()._containerName)
+                                    containerIsRunning = true;
+                            if (!containerIsRunning)
+                            {
 
-                            // Wait until the container has actually started
-                            std::this_thread::sleep_for(500ms);
-                            for (int ii = 0; ii < 6; ii++)
-                                if (ExecShell::exec("docker exec -it bitbosonhiggsbuilderprocess ls")
-                                        .find("Error") == std::string::npos)
-                                    break;
-                                else
-                                    std::this_thread::sleep_for(10000ms);
+                                // Start by executing the container run process
+                                ExecShell::exec(getInstance()._runCommand, true);
+
+                                // Wait until the container has actually started
+                                std::this_thread::sleep_for(500ms);
+                                for (int ii = 0; ii < 6; ii++)
+                                    if (ExecShell::exec("docker exec -it " + getInstance()._containerName + " ls")
+                                            .find("Error") == std::string::npos)
+                                        break;
+                                    else
+                                        std::this_thread::sleep_for(10000ms);
+                            }
                         }
                     }
 
@@ -134,7 +149,7 @@ namespace BitBoson
                         {
 
                             // Simply execute the container stop process
-                            ExecShell::exec("docker stop bitbosonhiggsbuilderprocess");
+                            ExecShell::exec("docker stop " + getInstance()._containerName);
                         }
                     }
 
@@ -152,7 +167,7 @@ namespace BitBoson
 
                             // Attempt to wait until the given path exists
                             for (int ii = 0; ii < 20; ii++)
-                                if (ExecShell::exec("docker exec -it bitbosonhiggsbuilderprocess ls " + path)
+                                if (ExecShell::exec("docker exec -it " + getInstance()._containerName + " ls " + path)
                                         .find("No such file or directory") == std::string::npos)
                                     break;
                                 else
@@ -173,13 +188,14 @@ namespace BitBoson
                         // Setup the command prefix differently if this is a container
                         std::string containerCmd = "";
                         if (getInstance()._isContainer)
-                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+                            containerCmd += "docker exec -it " + getInstance()._containerName + " ";
 
                         // Add in the init command if applicable
                         if (!containerCmd.empty())
                             containerCmd += (getInstance()._initCmd + " ");
 
                         // Simply run the provided command in the Higgs-Boson builder container
+                        ExecShell::exec(containerCmd + "container-watch-dog -b");
                         return ExecShell::exec(containerCmd + command);
                     }
 
@@ -197,13 +213,14 @@ namespace BitBoson
                         // Setup the command prefix differently if this is a container
                         std::string containerCmd = "";
                         if (getInstance()._isContainer)
-                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+                            containerCmd += "docker exec -it " + getInstance()._containerName + " ";
 
                         // Add in the init command if applicable
                         if (!containerCmd.empty())
                             containerCmd += (getInstance()._initCmd + " ");
 
                         // Simply run the provided command in the Higgs-Boson builder container
+                        ExecShell::exec(containerCmd + "container-watch-dog -b");
                         return ExecShell::execWithResponse(message, containerCmd + command);
                     }
 
@@ -220,13 +237,14 @@ namespace BitBoson
                         // Setup the command prefix differently if this is a container
                         std::string containerCmd = "";
                         if (getInstance()._isContainer)
-                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+                            containerCmd += "docker exec -it " + getInstance()._containerName + " ";
 
                         // Add in the init command if applicable
                         if (!containerCmd.empty())
                             containerCmd += (getInstance()._initCmd + " ");
 
                         // Simply run the provided command in the Higgs-Boson builder container
+                        ExecShell::exec(containerCmd + "container-watch-dog -b");
                         return ExecShell::execLive(containerCmd + command);
                     }
 
@@ -255,12 +273,7 @@ namespace BitBoson
                     /**
                      * Destructor used to cleanup the Singleton Class
                      */
-                    virtual ~RunTypeSingleton()
-                    {
-
-                        // Ensure the running container is stopped
-                        stopIdleContainer();
-                    }
+                    virtual ~RunTypeSingleton() = default;
 
                 // Private member functions
                 private:
