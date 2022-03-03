@@ -57,14 +57,28 @@ bool isValidDockcrossImage(const std::string& image)
  * Function used to checkout (if necessary) the dockcross project
  *
  * @param cacheDir String representing the cache directory to use
+ * @param update Boolean indicating that we want to update dockcross
  */
-void checkoutDockross(const std::string& cacheDir)
+void checkoutDockross(const std::string& cacheDir, bool update=false)
 {
 
     // Check-out the BitBoson fork of the dockcross project
     ExecShell::exec(std::string("git clone --recurse-submodules -b higgs-boson")
             + std::string(" git://github.com/bitboson-deps/dockcross.git ")
             + cacheDir + std::string("/dockcross"));
+
+    // Update the dockcross installation if desired
+    if (update)
+    {
+
+        // Ensure that the latest dockcross/higgs-boson submodule is available
+        ExecShell::execWithResponse("Updating Dockcross Installation",
+                "cd " + cacheDir + std::string("/dockcross")
+                + " && git fetch && git pull origin higgs-boson");
+        ExecShell::execWithResponse("Updating Internal Higgs-Boson Installation",
+                "cd " + cacheDir + std::string("/dockcross/higgs-boson")
+                + " && git fetch && git pull origin mainline");
+    }
 }
 
 /**
@@ -250,6 +264,7 @@ int main(int argc, char* argv[])
         std::cout << std::endl;
         std::cout << "Options:" << std::endl;
         std::cout << "  list-targets                  List all possible targets supported by higgs-boson" << std::endl;
+        std::cout << "  update-builders               Update the builder-containers to the latest version" << std::endl;
         std::cout << "  setup <target> [XCode|local]  Setup cross-compilation support for the provided target" << std::endl;
         std::cout << "  download [local]              Download all external dependencies (local is outside of docker)" << std::endl;
         std::cout << "  build-deps <target*>          Build all external dependencies for a given target" << std::endl;
@@ -308,6 +323,17 @@ int main(int argc, char* argv[])
         // Simply get and list all possible image targets
         for (const auto& imageTarget : Constants::getValidImages())
             std::cout << imageTarget << std::endl;
+
+        // Return zero to exit early
+        return 0;
+    }
+
+    // Handle update-builders command (if applicable)
+    if ((argc > 1) && (std::string(argv[1]) == "update-builders"))
+    {
+
+        // Simply update dockcross and related repositories
+        checkoutDockross(globalCacheDir, true);
 
         // Return zero to exit early
         return 0;
