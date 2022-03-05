@@ -33,6 +33,80 @@ namespace BitBoson
     class FileWriter
     {
 
+        // Public internal classes
+        public:
+            class FileWriterConfigSingleton
+            {
+
+                // Private member variables
+                private:
+                    std::string _containerName;
+
+                // Public member functions
+                public:
+
+                    /**
+                     * Static function used to set the container name for the singleton
+                     *
+                     * @param containerName String representing the container name
+                     */
+                    static void setDockerContainerName(const std::string& containerName)
+                    {
+
+                        // Simply set the internal variables accordingly
+                        getInstance()._containerName = containerName;
+                    }
+
+                    /**
+                     * Static function used to get the container name from the singleton
+                     *
+                     * @return String representing the container name for the singleton
+                     */
+                    static std::string getDockerContainerName()
+                    {
+
+                        // Simply get the internal container-name accordingly
+                        return getInstance()._containerName;
+                    }
+
+                    /**
+                     * Destructor used to cleanup the Singleton Class
+                     */
+                    virtual ~FileWriterConfigSingleton() = default;
+
+                // Private member functions
+                private:
+
+                    /**
+                     * Internal constructor used to setup the
+                     * Singleton Class instance
+                     */
+                    //___attribute__((no_sanitize("memory")))
+                    FileWriterConfigSingleton()
+                    {
+
+                        // Setup the default values
+                        _containerName = "";
+                    }
+
+                    /**
+                     * Internal static get-instance function to get the
+                     * instance of the Singleton Class
+                     *
+                     * @return Singleton Class instance
+                     */
+                    //___attribute__((no_sanitize("memory")))
+                    static FileWriterConfigSingleton& getInstance()
+                    {
+
+                        // Setup the Singleton Instance
+                        static FileWriterConfigSingleton instance;
+
+                        // Return the Singleton instance
+                        return instance;
+                    }
+            };
+
         // Private member variables
         private:
             bool _isClosed;

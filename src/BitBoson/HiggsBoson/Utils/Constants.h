@@ -30,7 +30,7 @@ namespace BitBoson::Constants
 
     // Define Docker-container related constants
     const std::string DOCKER_HIGGS_BUILDER_PREFIX = "bitbosonhiggsbosonbuilderprocess-";
-    const std::string DOCKER_SYNC_PREFIX = "higgsboson-sync-";
+    const std::string DOCKER_SYNC_PREFIX = "higgsbosonsync-";
 
     /**
      * Function used to get a list (vector) of valid image targets

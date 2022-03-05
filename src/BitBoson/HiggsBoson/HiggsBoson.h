@@ -254,9 +254,11 @@ namespace BitBoson
                      * @param projectDir String representing the project directory
                      * @param projectCacheDir String representing the project cache directory
                      * @param projectDirHash String representing the project directory hash
+                     * @param globalCacheDir String representing the global cache directory
                      */
                     static std::shared_ptr<DockerSyncSettings> getDockerSync(const std::string& projectDir="",
-                            const std::string& projectCacheDir="", const std::string& projectDirHash="")
+                            const std::string& projectCacheDir="", const std::string& projectDirHash="",
+                            const std::string& globalCacheDir="")
                     {
 
                         // Create the docker-sync settings if it does not already exist
@@ -264,7 +266,7 @@ namespace BitBoson
                         if ((getInstance()._dockerSyncSettings == nullptr) && !projectDir.empty()
                                 && !projectCacheDir.empty() && !projectDirHash.empty())
                             getInstance()._dockerSyncSettings = std::make_shared<DockerSyncSettings>(
-                                    projectDir, projectCacheDir, projectDirHash);
+                                    projectDir, projectCacheDir, projectDirHash, globalCacheDir);
 
                         // Return the configured docker-sync settings
                         return getInstance()._dockerSyncSettings;

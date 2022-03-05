@@ -24,6 +24,7 @@
 #include <signal.h>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
+#include <BitBoson/HiggsBoson/Utils/FileWriter.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Utils/Constants.h>
 
@@ -290,6 +291,7 @@ int main(int argc, char* argv[])
     // Deduce a unique hash which represents this project's path on disk
     auto projectDirHash = Utils::sha256(currentPath);
     HIGGS_BUILDER_NAME = HIGGS_BUILDER_NAME + projectDirHash;
+    FileWriter::FileWriter::FileWriterConfigSingleton::setDockerContainerName(HIGGS_BUILDER_NAME);
 
     // Define the cache directory to live in the user's home-path
     // If this does not exist we can define it to exist locally
@@ -310,7 +312,7 @@ int main(int argc, char* argv[])
     dockerSyncInstalled |= (ExecShell::exec("docker-sync --version")
             .find("docker-sync:") == std::string::npos);
     if (dockerSyncInstalled && (std::string(argv[1]) != "setup"))
-        HiggsBoson::RunTypeSingleton::getDockerSync(currentPath, appCacheDir, projectDirHash);
+        HiggsBoson::RunTypeSingleton::getDockerSync(currentPath, appCacheDir, projectDirHash, globalCacheDir);
 
     // Setup the Higgs-Boson configuration for the instance
     auto higgsBoson = HiggsBoson(currentPath,
