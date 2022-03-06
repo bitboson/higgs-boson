@@ -683,6 +683,16 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile.writeLine("endif()");
             cMakeFile.writeLine("");
 
+            // Ensure the base-compiler variables are setup for local builds
+            cMakeFile.writeLine("# Ensure the base-compiler variables are setup for local builds");
+            cMakeFile.writeLine("if(NOT DEFINED CMAKE_C_COMPILER)");
+            cMakeFile.writeLine("    set(CMAKE_C_COMPILER /usr/bin/clang)");
+            cMakeFile.writeLine("endif()");
+            cMakeFile.writeLine("if(NOT DEFINED CMAKE_CXX_COMPILER)");
+            cMakeFile.writeLine("    set(CMAKE_CXX_COMPILER /usr/bin/clang++)");
+            cMakeFile.writeLine("endif()");
+            cMakeFile.writeLine("");
+
             // Write-in cross-compilation configuration
             cMakeFile.writeLine("# Set Cross-Compilation Target Information");
             cMakeFile.writeLine("set(CMAKE_HOST_SYSTEM_NAME Linux)");
@@ -793,8 +803,8 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
 
             // Write-in the CMake coverages flags
             cMakeFile.writeLine("if(NOT CODE_COVERAGE)");
-            cMakeFile.writeLine("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -Wall -Werror -Wno-deprecated-declarations\")");
-            cMakeFile.writeLine("    set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-deprecated-declarations\")");
+            cMakeFile.writeLine("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -Wall\")");
+            cMakeFile.writeLine("    set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS}  -Wall\")");
             cMakeFile.writeLine("endif()");
             cMakeFile.writeLine("");
 
