@@ -77,6 +77,9 @@ if(NOT DEFINED CMAKE_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 endif()
 
+# Specify pre-processor macros for the current platform being built
+add_compile_definitions(HIGGS_BOSON_TARGET_OS=$ENV{HIGGS_BOSON_TARGET_OS})
+
 
 #
 #

@@ -25,6 +25,7 @@
 #include <string>
 #include <memory>
 #include <thread>
+#include <thread>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Configuration/Configuration.h>
@@ -50,6 +51,8 @@ namespace BitBoson
                     std::string _initCmd;
                     std::string _runCommand;
                     std::string _containerName;
+                    volatile bool _keepBumpingContainer;
+                    std::shared_ptr<std::thread> _watchDogBumper;
                     std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
                 // Public member functions
@@ -73,6 +76,10 @@ namespace BitBoson
                         if (!getInstance()._runCommand.empty() && (getInstance()._runCommand != "bash")
                                 && (getInstance()._runCommand != "sh"))
                             getInstance()._isContainer = true;
+
+                        // Create the background thread for bumping the container watch-dog-timer
+                        getInstance()._keepBumpingContainer = true;
+                        getInstance()._watchDogBumper = std::make_shared<std::thread>(bumpBuilderWatchDogTimer, true);
                     }
 
                     /**
@@ -195,7 +202,6 @@ namespace BitBoson
                             containerCmd += (getInstance()._initCmd + " ");
 
                         // Simply run the provided command in the Higgs-Boson builder container
-                        ExecShell::exec(containerCmd + "container-watch-dog -b");
                         return ExecShell::exec(containerCmd + command);
                     }
 
@@ -220,7 +226,6 @@ namespace BitBoson
                             containerCmd += (getInstance()._initCmd + " ");
 
                         // Simply run the provided command in the Higgs-Boson builder container
-                        ExecShell::exec(containerCmd + "container-watch-dog -b");
                         return ExecShell::execWithResponse(message, containerCmd + command);
                     }
 
@@ -244,7 +249,6 @@ namespace BitBoson
                             containerCmd += (getInstance()._initCmd + " ");
 
                         // Simply run the provided command in the Higgs-Boson builder container
-                        ExecShell::exec(containerCmd + "container-watch-dog -b");
                         return ExecShell::execLive(containerCmd + command);
                     }
 
@@ -275,7 +279,14 @@ namespace BitBoson
                     /**
                      * Destructor used to cleanup the Singleton Class
                      */
-                    virtual ~RunTypeSingleton() = default;
+                    virtual ~RunTypeSingleton()
+                    {
+
+                        // Join/stop the watch-dog-timer bumper thread (if present)
+                        getInstance()._keepBumpingContainer = false;
+                        if (_watchDogBumper != nullptr)
+                            _watchDogBumper->join();
+                    }
 
                 // Private member functions
                 private:
@@ -293,6 +304,9 @@ namespace BitBoson
 
                         // Setup the default docker-sync settings (none)
                         _dockerSyncSettings = nullptr;
+
+                        // Setup the default bump-related thread (none)
+                        _watchDogBumper = nullptr;
                     }
 
                     /**
@@ -310,6 +324,42 @@ namespace BitBoson
 
                         // Return the Singleton instance
                         return instance;
+                    }
+
+                    /**
+                     * Interna static function used to "bump" the currently defined builder-container's watch-dog-timer
+                     * NOTE: This is intended to be used in a background thread
+                     *
+                     * @param isLooping Boolean indicating whether to continuously bump the container
+                     */
+                    static void bumpBuilderWatchDogTimer(bool isLooping=false)
+                    {
+
+                        // Keep bumping the container if specified to do so
+                        while (isLooping && HiggsBoson::RunTypeSingleton::getInstance()._keepBumpingContainer)
+                        {
+
+                            // Determine if we are actually running in a container
+                            // which is also using a watch-dog-timer
+                            std::string containerCmd = "";
+                            if (HiggsBoson::RunTypeSingleton::getInstance()._isContainer)
+                            {
+
+                                // Setup the docker-exec command
+                                containerCmd += "docker exec -it " + HiggsBoson::RunTypeSingleton::getInstance()._containerName + " ";
+
+                                // Add in the init command if applicable
+                                if (!HiggsBoson::RunTypeSingleton::getInstance()._initCmd.empty())
+                                    containerCmd += (HiggsBoson::RunTypeSingleton::getInstance()._initCmd + " ");
+
+                                // Simply bump the watch-dog-timer within the Higgs-Boson builder container
+                                ExecShell::exec(containerCmd + "container-watch-dog -b");
+                            }
+
+                            // If this is a "looping" operation then sleep for 1 second
+                            if (isLooping)
+                                std::this_thread::sleep_for(1000ms);
+                        }
                     }
             };
 
@@ -331,6 +381,13 @@ namespace BitBoson
              */
             HiggsBoson(const std::string& projectDir, const std::string& filePath,
                     const std::string& tmpDir);
+
+            /**
+             * Function used to get the project's name from the configuration file
+             *
+             * @return String representing the project's name
+             */
+            std::string getProjectName();
 
             /**
              * Function used to download the external dependencies for the project

@@ -49,6 +49,18 @@ HiggsBoson::HiggsBoson(const std::string& projectDir, const std::string& filePat
 }
 
 /**
+ * Function used to get the project's name from the configuration file
+ *
+ * @return String representing the project's name
+ */
+std::string HiggsBoson::getProjectName()
+{
+
+    // Simply get and return the project's name from the configuration
+    return _configuration->getProjectSettings()->getProjectName();
+}
+
+/**
  * Function used to download the external dependencies for the project
  *
  * @return Boolean indicating whether the download was successful

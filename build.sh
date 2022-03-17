@@ -22,6 +22,8 @@ set -e
 
 # Setup platform dependent variables
 [[ -z "${HIGGS_LIB_EXT}" ]] && HIGGS_LIB_EXT='so' || set HIGGS_LIB_EXT="${HIGGS_LIB_EXT}"
+[[ -z "${HIGGS_BOSON_TARGET_OS}" ]] && HIGGS_BOSON_TARGET_OS='linux' || set HIGGS_BOSON_TARGET_OS="${HIGGS_BOSON_TARGET_OS}"
+export HIGGS_BOSON_TARGET_OS=${HIGGS_BOSON_TARGET_OS}
 
 # Get the current directory for reference
 HIGGS_BOSON_MANUAL_ORIG_DIR=$(pwd)
@@ -32,8 +34,8 @@ mkdir -p $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/external/raw
 cd $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/external/raw
 
 # Clone the external dependencies into the corresponding directory
-git clone git://github.com/bitboson-deps/mini-yaml.git
-git clone git://github.com/bitboson-deps/picosha2.git
+git clone https://github.com/bitboson-deps/mini-yaml.git
+git clone https://github.com/bitboson-deps/picosha2.git
 
 # Build the mini-yaml dependency and copy the artifacts
 cd $HIGGS_BOSON_MANUAL_ORIG_DIR/.higgs-boson/external/raw/mini-yaml

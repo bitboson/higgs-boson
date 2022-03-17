@@ -693,6 +693,13 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile.writeLine("endif()");
             cMakeFile.writeLine("");
 
+            // Specify pre-processor macros for the current platform being built
+            cMakeFile.writeLine("# Specify pre-processor macros for the current platform being built");
+            cMakeFile.writeLine("add_compile_definitions(HIGGS_BOSON_TARGET_OS=$ENV{HIGGS_BOSON_TARGET_OS})");
+            cMakeFile.writeLine("add_compile_definitions(HIGGS_BOSON_TARGET_PLATFORM=$ENV{HIGGS_BOSON_TARGET_PLATFORM})");
+            cMakeFile.writeLine("add_compile_definitions(HIGGS_BOSON_TARGET_ARCH=$ENV{HIGGS_BOSON_TARGET_ARCH})");
+            cMakeFile.writeLine("");
+
             // Write-in cross-compilation configuration
             cMakeFile.writeLine("# Set Cross-Compilation Target Information");
             cMakeFile.writeLine("set(CMAKE_HOST_SYSTEM_NAME Linux)");

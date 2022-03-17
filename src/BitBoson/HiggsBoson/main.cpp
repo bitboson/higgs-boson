@@ -21,7 +21,6 @@
 
 #include <string>
 #include <vector>
-#include <signal.h>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/FileWriter.h>
@@ -183,7 +182,8 @@ std::string setupDockerImage(const std::string& target,
                 + " && chmod +x ./bitboson-higgs-builder");
 
         // Setup the return value accordingly
-        retVal = globalCacheDir + "/dockcross/bitboson-higgs-builder container-watch-dog";
+        retVal = globalCacheDir + "/dockcross/bitboson-higgs-builder "
+                + (interactive ? "bash" : "container-watch-dog");
     }
 
     // Handle all other targets accordingly for docross
@@ -213,7 +213,8 @@ std::string setupDockerImage(const std::string& target,
 
         // Setup the return value accordingly
         retVal = globalCacheDir + "/dockcross/bitboson-" + target;
-        retVal += (std::string(isMacOsxTarget ? " init-osx" : "") + " container-watch-dog");
+        retVal += (std::string(isMacOsxTarget ? " init-osx" : "") +
+                + (interactive ? "bash" : "container-watch-dog"));
     }
 
     // Return the return value
@@ -277,6 +278,7 @@ int main(int argc, char* argv[])
         std::cout << "  sanitize <type**>             Run the provided/desired code sanitizer for code quality" << std::endl;
         std::cout << "  cli <target*>                 Run an interactive shell on the provided build container" << std::endl;
         std::cout << "  cmd <target*> <options>       Run generic commands (via bash) on the provided build container" << std::endl;
+        std::cout << "  run <additional args>         Run the built executable on the current platform" << std::endl;
         std::cout << std::endl;
         std::cout << "*Possible targets depend on each individual project" << std::endl;
         std::cout << "**Test/Sanitize types include: address, behavior, thread, and leak" << std::endl;
@@ -313,10 +315,6 @@ int main(int argc, char* argv[])
             .find("docker-sync:") == std::string::npos);
     if (dockerSyncInstalled && (std::string(argv[1]) != "setup"))
         HiggsBoson::RunTypeSingleton::getDockerSync(currentPath, appCacheDir, projectDirHash, globalCacheDir);
-
-    // Setup the Higgs-Boson configuration for the instance
-    auto higgsBoson = HiggsBoson(currentPath,
-            currentPath + "/higgs-boson.yaml", appCacheDir);
 
     // Handle list-targets command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "list-targets"))
@@ -398,12 +396,91 @@ int main(int argc, char* argv[])
 
         // Determine the target we are setting-up (if provided)
         std::string cliTarget = "higgs-boson";
-        if ((argc <= 2) || ((argc > 2) && (!std::string(argv[2]).empty())))
+        if ((argc > 2) && (!std::string(argv[2]).empty()))
             cliTarget = std::string(argv[2]);
+
+        // Ensure the corresponding container is stopped
+        ExecShell::execWithResponse("Stopping Running Container (if running)",
+                "docker stop " + HIGGS_BUILDER_NAME);
 
         // Simply run the desired interactive docker container
         return ExecShell::execLive(getRunTypeCommand(cliTarget,
                 currentPath, globalCacheDir, appCacheDir, projectDirHash, true));
+    }
+
+    // Handle all generic commands here
+    if ((argc > 1) && (std::string(argv[1]) == "cmd"))
+    {
+
+        // Setup a return flag
+        bool retFlag = false;
+
+        // Determine the target we are setting-up (if provided)
+        bool foundTarget = false;
+        std::string cliTarget = "higgs-boson";
+        if ((argc > 2) && (!std::string(argv[2]).empty()))
+        {
+
+            // Extract the attribute for the container name
+            std::string possibleTarget = std::string(argv[2]);
+
+            // Check if it is "valid" and use it if so
+            for (const auto& imageTarget : Constants::getValidImages())
+                if (possibleTarget == imageTarget)
+                    foundTarget = true;
+            if (foundTarget)
+                cliTarget = possibleTarget;
+        }
+
+        // Setup the docker container for building files
+        HiggsBoson::RunTypeSingleton::setDockerRunCommand(
+                getRunTypeCommand(cliTarget, currentPath, globalCacheDir,
+                                  appCacheDir, projectDirHash), HIGGS_BUILDER_NAME);
+        HiggsBoson::RunTypeSingleton::runIdleContainer();
+
+        // Collect all remaining arguments to pass to the command
+        std::string commandInfo;
+        for (int ii = (foundTarget ? 3 : 2); ii < argc; ii++)
+            commandInfo += (std::string(argv[ii]) + std::string(" "));
+
+        // Actually handle the generic command here
+        HiggsBoson::RunTypeSingleton::executeInContainer(commandInfo);
+
+        // Return the status of the operation
+        return (retFlag ? 0 : 1);
+    }
+
+    // Setup the Higgs-Boson configuration for the instance
+    auto higgsBoson = HiggsBoson(currentPath, currentPath + "/higgs-boson.yaml", appCacheDir);
+
+    // Handle run command (if applicable)
+    if ((argc > 1) && (std::string(argv[1]) == "run"))
+    {
+
+        // Collect all remaining arguments to pass to the run command
+        std::string runArgs;
+        for (int ii = 2; ii < argc; ii++)
+            runArgs += (std::string(argv[ii]) + std::string(" "));
+
+        // Handle the run-command based on the current platform (from pre-processor macros)
+        #ifdef HIGGS_BOSON_TARGET_OS
+            #if HIGGS_BOSON_TARGET_OS == linux
+                std::string binaryPath = "output/default/bin/" + higgsBoson.getProjectName();
+                std::string dependenciesPath = "output/default/deps";
+                ExecShell::execLive("LD_LIBRARY_PATH=" + dependenciesPath + " ./" + binaryPath + " " + runArgs);
+            #elif HIGGS_BOSON_TARGET_OS == darwin
+                std::string binaryPath = "output/default/bin/" + higgsBoson.getProjectName();
+                std::string dependenciesPath = "output/default/deps";
+                ExecShell::execLive("DYLD_LIBRARY_PATH=" + dependenciesPath + " ./" + binaryPath + " " + runArgs);
+            #elif HIGGS_BOSON_TARGET_OS == windows
+                std::string binaryPath = "output/default/bin/" + higgsBoson.getProjectName();
+                std::string dependenciesPath = "output/default/deps";
+                ExecShell::execLive("PATH=" + dependenciesPath + " " + binaryPath + " " + runArgs);
+            #endif
+        #endif
+
+        // Return zero to exit early
+        return 0;
     }
 
     // Assume all commands are run in the default Higgs-Boson docker container
@@ -415,6 +492,9 @@ int main(int argc, char* argv[])
     // Handle download command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "download"))
     {
+
+        // Setup a return flag
+        bool retFlag = false;
 
         // Handle the default download operation (if applicable)
         if ((argc <= 2) || ((argc > 2) && (std::string(argv[2]) == "default")))
@@ -433,11 +513,17 @@ int main(int argc, char* argv[])
             HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
             higgsBoson.download();
         }
+
+        // Return the status of the operation
+        return (retFlag ? 0 : 1);
     }
 
     // Handle dependencies command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "build-deps"))
     {
+
+        // Setup a return flag
+        bool retFlag = false;
 
         // Handle the default build operation (if applicable)
         if ((argc <= 2) || ((argc > 2) && (std::string(argv[2]) == "default")))
@@ -468,11 +554,17 @@ int main(int argc, char* argv[])
                             projectDirHash), HIGGS_BUILDER_NAME);
             higgsBoson.buildDependencies(std::string(argv[2]));
         }
+
+        // Return the status of the operation
+        return (retFlag ? 0 : 1);
     }
 
     // Handle build command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "build"))
     {
+
+        // Setup a return flag
+        bool retFlag = false;
 
         // Handle the default build operation (if applicable)
         if ((argc <= 2) || ((argc > 2) && (std::string(argv[2]) == "default")))
@@ -503,6 +595,9 @@ int main(int argc, char* argv[])
                             projectDirHash), HIGGS_BUILDER_NAME);
             higgsBoson.buildProject(std::string(argv[2]));
         }
+
+        // Return the status of the operation
+        return (retFlag ? 0 : 1);
     }
 
     // If there is a filter criteria, read it in as well
@@ -569,30 +664,6 @@ int main(int argc, char* argv[])
         // Handle the case where no desired sanitizer was selected
         else
             std::cout << "A valid sanitizer must be chosen: address, behavior, thread, or leak" << std::endl;
-    }
-
-    // Handle all generic commands here
-    if ((argc > 1) && (std::string(argv[1]) == "cmd"))
-    {
-
-        // Determine the target we are setting-up (if provided)
-        std::string cliTarget = "higgs-boson";
-        if ((argc <= 2) || ((argc > 2) && (!std::string(argv[2]).empty())))
-            cliTarget = std::string(argv[2]);
-
-        // Setup the docker container for building files
-        HiggsBoson::RunTypeSingleton::setDockerRunCommand(
-                getRunTypeCommand(cliTarget, currentPath, globalCacheDir,
-                                  appCacheDir, projectDirHash), HIGGS_BUILDER_NAME);
-        HiggsBoson::RunTypeSingleton::runIdleContainer();
-
-        // Collect all remaining arguments to pass to the compiler
-        std::string commandInfo;
-        for (int ii = 3; ii < argc; ii++)
-            commandInfo += (std::string(argv[ii]) + std::string(" "));
-
-        // Actually handle the generic command here
-        HiggsBoson::RunTypeSingleton::executeInContainer(commandInfo);
     }
 
     // If we get here, return a successful return code
