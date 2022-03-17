@@ -114,7 +114,8 @@ void FileWriter::close()
 
         // Copy the file to the container if necessary
         if (_isContainer)
-            ExecShell::exec("docker cp " + _filePath + " bitbosonhiggsbuilderprocess:" + _filePath);
+            ExecShell::exec("docker cp " + _filePath + " "
+                    + FileWriterConfigSingleton::getDockerContainerName() + ":" + _filePath);
     }
 }
 

@@ -25,6 +25,8 @@
 #include <string>
 #include <memory>
 #include <thread>
+#include <thread>
+#include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 #include <BitBoson/HiggsBoson/Configuration/Configuration.h>
 #include <BitBoson/HiggsBoson/Configuration/Dependencies/Dependency.h>
@@ -48,6 +50,9 @@ namespace BitBoson
                     bool _isContainer;
                     std::string _initCmd;
                     std::string _runCommand;
+                    std::string _containerName;
+                    volatile bool _keepBumpingContainer;
+                    std::shared_ptr<std::thread> _watchDogBumper;
                     std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
                 // Public member functions
@@ -59,17 +64,22 @@ namespace BitBoson
                      *
                      * @param command String representing the command
                      */
-                    static void setDockerRunCommand(const std::string& command)
+                    static void setDockerRunCommand(const std::string& command, const std::string& containerName="")
                     {
 
                         // Simply set the run-type command accordingly
                         getInstance()._isContainer = false;
                         getInstance()._runCommand = command;
+                        getInstance()._containerName = containerName;
 
                         // Determine if this command is for a container or not
                         if (!getInstance()._runCommand.empty() && (getInstance()._runCommand != "bash")
                                 && (getInstance()._runCommand != "sh"))
                             getInstance()._isContainer = true;
+
+                        // Create the background thread for bumping the container watch-dog-timer
+                        getInstance()._keepBumpingContainer = true;
+                        getInstance()._watchDogBumper = std::make_shared<std::thread>(bumpBuilderWatchDogTimer, true);
                     }
 
                     /**
@@ -108,17 +118,29 @@ namespace BitBoson
                         if (getInstance()._isContainer)
                         {
 
-                            // Start by executing the container run process
-                            ExecShell::exec(getInstance()._runCommand, true);
+                            // Check if the container is already running and only
+                            // start the container if it is not already running
+                            bool containerIsRunning = false;
+                            std::string dockerPsCmd = "docker ps --format \"{{.Names}}\" | grep higgsboson | grep "
+                                    + getInstance()._containerName;
+                            for (std::string containerName : Utils::splitStringByDelimiter(ExecShell::exec(dockerPsCmd), '\n'))
+                                if (containerName == getInstance()._containerName)
+                                    containerIsRunning = true;
+                            if (!containerIsRunning)
+                            {
 
-                            // Wait until the container has actually started
-                            std::this_thread::sleep_for(500ms);
-                            for (int ii = 0; ii < 6; ii++)
-                                if (ExecShell::exec("docker exec -it bitbosonhiggsbuilderprocess ls")
-                                        .find("Error") == std::string::npos)
-                                    break;
-                                else
-                                    std::this_thread::sleep_for(10000ms);
+                                // Start by executing the container run process
+                                ExecShell::exec(getInstance()._runCommand, true);
+
+                                // Wait until the container has actually started
+                                std::this_thread::sleep_for(500ms);
+                                for (int ii = 0; ii < 6; ii++)
+                                    if (ExecShell::exec("docker exec -it " + getInstance()._containerName + " ls")
+                                            .find("Error") == std::string::npos)
+                                        break;
+                                    else
+                                        std::this_thread::sleep_for(10000ms);
+                            }
                         }
                     }
 
@@ -134,7 +156,7 @@ namespace BitBoson
                         {
 
                             // Simply execute the container stop process
-                            ExecShell::exec("docker stop bitbosonhiggsbuilderprocess");
+                            ExecShell::exec("docker stop " + getInstance()._containerName);
                         }
                     }
 
@@ -152,7 +174,7 @@ namespace BitBoson
 
                             // Attempt to wait until the given path exists
                             for (int ii = 0; ii < 20; ii++)
-                                if (ExecShell::exec("docker exec -it bitbosonhiggsbuilderprocess ls " + path)
+                                if (ExecShell::exec("docker exec -it " + getInstance()._containerName + " ls " + path)
                                         .find("No such file or directory") == std::string::npos)
                                     break;
                                 else
@@ -173,7 +195,7 @@ namespace BitBoson
                         // Setup the command prefix differently if this is a container
                         std::string containerCmd = "";
                         if (getInstance()._isContainer)
-                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+                            containerCmd += "docker exec -it " + getInstance()._containerName + " ";
 
                         // Add in the init command if applicable
                         if (!containerCmd.empty())
@@ -197,7 +219,7 @@ namespace BitBoson
                         // Setup the command prefix differently if this is a container
                         std::string containerCmd = "";
                         if (getInstance()._isContainer)
-                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+                            containerCmd += "docker exec -it " + getInstance()._containerName + " ";
 
                         // Add in the init command if applicable
                         if (!containerCmd.empty())
@@ -220,7 +242,7 @@ namespace BitBoson
                         // Setup the command prefix differently if this is a container
                         std::string containerCmd = "";
                         if (getInstance()._isContainer)
-                            containerCmd += "docker exec -it bitbosonhiggsbuilderprocess ";
+                            containerCmd += "docker exec -it " + getInstance()._containerName + " ";
 
                         // Add in the init command if applicable
                         if (!containerCmd.empty())
@@ -236,9 +258,11 @@ namespace BitBoson
                      * @param projectDir String representing the project directory
                      * @param projectCacheDir String representing the project cache directory
                      * @param projectDirHash String representing the project directory hash
+                     * @param globalCacheDir String representing the global cache directory
                      */
                     static std::shared_ptr<DockerSyncSettings> getDockerSync(const std::string& projectDir="",
-                            const std::string& projectCacheDir="", const std::string& projectDirHash="")
+                            const std::string& projectCacheDir="", const std::string& projectDirHash="",
+                            const std::string& globalCacheDir="")
                     {
 
                         // Create the docker-sync settings if it does not already exist
@@ -246,7 +270,7 @@ namespace BitBoson
                         if ((getInstance()._dockerSyncSettings == nullptr) && !projectDir.empty()
                                 && !projectCacheDir.empty() && !projectDirHash.empty())
                             getInstance()._dockerSyncSettings = std::make_shared<DockerSyncSettings>(
-                                    projectDir, projectCacheDir, projectDirHash);
+                                    projectDir, projectCacheDir, projectDirHash, globalCacheDir);
 
                         // Return the configured docker-sync settings
                         return getInstance()._dockerSyncSettings;
@@ -258,8 +282,10 @@ namespace BitBoson
                     virtual ~RunTypeSingleton()
                     {
 
-                        // Ensure the running container is stopped
-                        stopIdleContainer();
+                        // Join/stop the watch-dog-timer bumper thread (if present)
+                        getInstance()._keepBumpingContainer = false;
+                        if (_watchDogBumper != nullptr)
+                            _watchDogBumper->join();
                     }
 
                 // Private member functions
@@ -278,6 +304,9 @@ namespace BitBoson
 
                         // Setup the default docker-sync settings (none)
                         _dockerSyncSettings = nullptr;
+
+                        // Setup the default bump-related thread (none)
+                        _watchDogBumper = nullptr;
                     }
 
                     /**
@@ -295,6 +324,42 @@ namespace BitBoson
 
                         // Return the Singleton instance
                         return instance;
+                    }
+
+                    /**
+                     * Interna static function used to "bump" the currently defined builder-container's watch-dog-timer
+                     * NOTE: This is intended to be used in a background thread
+                     *
+                     * @param isLooping Boolean indicating whether to continuously bump the container
+                     */
+                    static void bumpBuilderWatchDogTimer(bool isLooping=false)
+                    {
+
+                        // Keep bumping the container if specified to do so
+                        while (isLooping && HiggsBoson::RunTypeSingleton::getInstance()._keepBumpingContainer)
+                        {
+
+                            // Determine if we are actually running in a container
+                            // which is also using a watch-dog-timer
+                            std::string containerCmd = "";
+                            if (HiggsBoson::RunTypeSingleton::getInstance()._isContainer)
+                            {
+
+                                // Setup the docker-exec command
+                                containerCmd += "docker exec -it " + HiggsBoson::RunTypeSingleton::getInstance()._containerName + " ";
+
+                                // Add in the init command if applicable
+                                if (!HiggsBoson::RunTypeSingleton::getInstance()._initCmd.empty())
+                                    containerCmd += (HiggsBoson::RunTypeSingleton::getInstance()._initCmd + " ");
+
+                                // Simply bump the watch-dog-timer within the Higgs-Boson builder container
+                                ExecShell::exec(containerCmd + "container-watch-dog -b");
+                            }
+
+                            // If this is a "looping" operation then sleep for 1 second
+                            if (isLooping)
+                                std::this_thread::sleep_for(1000ms);
+                        }
                     }
             };
 
@@ -316,6 +381,13 @@ namespace BitBoson
              */
             HiggsBoson(const std::string& projectDir, const std::string& filePath,
                     const std::string& tmpDir);
+
+            /**
+             * Function used to get the project's name from the configuration file
+             *
+             * @return String representing the project's name
+             */
+            std::string getProjectName();
 
             /**
              * Function used to download the external dependencies for the project

@@ -49,6 +49,18 @@ HiggsBoson::HiggsBoson(const std::string& projectDir, const std::string& filePat
 }
 
 /**
+ * Function used to get the project's name from the configuration file
+ *
+ * @return String representing the project's name
+ */
+std::string HiggsBoson::getProjectName()
+{
+
+    // Simply get and return the project's name from the configuration
+    return _configuration->getProjectSettings()->getProjectName();
+}
+
+/**
  * Function used to download the external dependencies for the project
  *
  * @return Boolean indicating whether the download was successful
@@ -64,9 +76,6 @@ bool HiggsBoson::download()
 
     // Call the Peru Download operation and setup the return value
     retFlag = _configuration->getPeruSettings()->peruSync();
-
-    // Stop the Higgs-Boson builder container
-    HiggsBoson::RunTypeSingleton::stopIdleContainer();
 
     // Return the return flag
     return retFlag;
@@ -129,9 +138,6 @@ bool HiggsBoson::buildDependencies(const std::string& target)
                     "rsync -av " + depOutputHeaderDir + " " + cacheOutputHeaderDir);
         }
     }
-
-    // Stop the Higgs-Boson builder container
-    HiggsBoson::RunTypeSingleton::stopIdleContainer();
 
     // Return the return flag
     return retFlag;
@@ -232,9 +238,6 @@ bool HiggsBoson::buildProject(const std::string& target)
         }
     }
 
-    // Stop the Higgs-Boson builder container
-    HiggsBoson::RunTypeSingleton::stopIdleContainer();
-
     // Return the return flag
     return retFlag;
 }
@@ -269,9 +272,6 @@ bool HiggsBoson::testProject(CMakeSettings::TestType testType, const std::string
 
     // Test the main project for the provided test-type
     retFlag = _configuration->getCMakeSettings()->testCMakeProject(testType, testFilter);
-
-    // Stop the Higgs-Boson builder container
-    HiggsBoson::RunTypeSingleton::stopIdleContainer();
 
     // Return the return flag
     return retFlag;

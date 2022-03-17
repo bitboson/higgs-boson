@@ -34,7 +34,9 @@ namespace BitBoson
         private:
             std::string _projectDir;
             std::string _projectCacheDir;
+            std::string _globalCacheDir;
             std::string _projectDirHash;
+            std::string _containerName;
 
         // Public member functions
         public:
@@ -45,9 +47,11 @@ namespace BitBoson
              * @param projectDir String representing the project directory
              * @param projectCacheDir String representing the project cache directory
              * @param projectDirHash String representing the project directory hash
+             * @param globalCacheDir String representing the global cache directory
              */
             DockerSyncSettings(const std::string& projectDir,
-                    const std::string& projectCacheDir, const std::string& projectDirHash);
+                    const std::string& projectCacheDir, const std::string& projectDirHash,
+                    const std::string& globalCacheDir);
 
             /**
              * Function used to get the docker-sync volume
@@ -67,7 +71,7 @@ namespace BitBoson
             /**
              * Destructor used to cleanup the instance
              */
-            virtual ~DockerSyncSettings();
+            virtual ~DockerSyncSettings() = default;
 
         // Private member functions
         private:
@@ -76,9 +80,15 @@ namespace BitBoson
              * Internal function used to write the internal state to the configured
              * docker-sync file on disk
              *
-             * @return Boolean indcating whether the docker-sync file was written
+             * @param fileLocation String representing the location to store the file
+             * @return Boolean indicating whether the docker-sync file was written
              */
-            bool writeDockerSyncFile();
+            bool writeDockerSyncFile(const std::string& fileLocation);
+
+            /**
+             * Internal function used to remove orphaned/abandoned sync-containers
+             */
+            void removeOrphanedSyncContainers();
     };
 }
 

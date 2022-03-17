@@ -69,6 +69,17 @@ else()
     MESSAGE(STATUS "Library-Extension set to (default): ${HIGGS_LIB_EXT}")
 endif()
 
+# Ensure the base-compiler variables are setup for local builds
+if(NOT DEFINED CMAKE_C_COMPILER)
+    set(CMAKE_C_COMPILER /usr/bin/clang)
+endif()
+if(NOT DEFINED CMAKE_CXX_COMPILER)
+    set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+endif()
+
+# Specify pre-processor macros for the current platform being built
+add_compile_definitions(HIGGS_BOSON_TARGET_OS=$ENV{HIGGS_BOSON_TARGET_OS})
+
 
 #
 #

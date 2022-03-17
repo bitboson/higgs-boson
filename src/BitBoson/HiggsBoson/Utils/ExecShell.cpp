@@ -25,9 +25,13 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <mutex>
 #include <BitBoson/HiggsBoson/Utils/ExecShell.h>
 
 using namespace BitBoson;
+
+// Namespace mutex to coordinate shell operations
+std::recursive_mutex shellMutex;
 
 /**
  * Function used to execute a given shell command on the
@@ -43,6 +47,9 @@ std::string ExecShell::exec(std::string command, bool background)
 
     // Create a return value
     std::string retValue;
+
+    // Lock the shell operation
+    shellMutex.lock();
 
     // Handle the non-background case
     if (!background)
@@ -70,6 +77,9 @@ std::string ExecShell::exec(std::string command, bool background)
         system(std::string(command + " > /dev/null &").c_str());
     }
 
+    // Unlock the shell operation
+    shellMutex.unlock();
+
     // Return the return value
     return retValue;
 }
@@ -84,8 +94,20 @@ std::string ExecShell::exec(std::string command, bool background)
 bool ExecShell::execLive(std::string command)
 {
 
-    // Simply run the command and return the results
-    return (system(std::string(command).c_str()) == 0);
+    // Setup a return flag
+    bool retFlag;
+
+    // Lock the shell operation
+    shellMutex.lock();
+
+    // Simply run the command and extract the results
+    retFlag = (system(std::string(command).c_str()) == 0);
+
+    // Unlock the shell operation
+    shellMutex.unlock();
+
+    // Return the return flag
+    return retFlag;
 }
 
 /**
@@ -107,6 +129,9 @@ bool ExecShell::execWithResponse(std::string message, std::string command,
 
     // Create a return flag
     bool retFlag = false;
+
+    // Lock the shell operation
+    shellMutex.lock();
 
     // Clear the printed-response string for a clean output
     printedResponse = "";
@@ -139,6 +164,9 @@ bool ExecShell::execWithResponse(std::string message, std::string command,
         std::cout << response << std::endl;
         printedResponse += (response + "\n");
     }
+
+    // Unlock the shell operation
+    shellMutex.unlock();
 
     // Return the return flag
     return retFlag;

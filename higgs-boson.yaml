@@ -39,7 +39,7 @@ dependencies:
   # Setup the external dependency: mini-yaml
   - name: miniyaml
     source: git
-    url:  git://github.com/bitboson-deps/mini-yaml.git
+    url:  https://github.com/bitboson-deps/mini-yaml.git
     rev: 22d3dcf5684a11f9c0508c1ad8b3282a1d888319
     type: manual
     target any:
@@ -53,7 +53,7 @@ dependencies:
   # Setup the external dependency: PicoSHA2
   - name: picosha2
     source: git
-    url: git://github.com/bitboson-deps/picosha2.git
+    url: https://github.com/bitboson-deps/picosha2.git
     rev: b699e6c900be6e00152db5a3d123c1db42ea13d0
     type: manual
     target any:

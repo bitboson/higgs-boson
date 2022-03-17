@@ -4,7 +4,7 @@
 IS_BUMPING=0
 IS_PRINTING=0
 SLEEP_TIME=5
-WATCHDOG_TIME=3600
+WATCHDOG_TIME=300
 
 # Parse the command-line arguments
 for i in "$@"; do
