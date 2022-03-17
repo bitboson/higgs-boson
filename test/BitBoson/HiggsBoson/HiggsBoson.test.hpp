@@ -50,10 +50,10 @@ bool writeHiggsProjectFiles(const std::string& projectPath, bool isLibrary)
     REQUIRE (system(std::string("mkdir -p /tmp/testdb").c_str()) == 0);
 
     // Clone the Catch2 Repository
-    ExecShell::exec("git clone  git://github.com/bitboson-deps/Catch2.git " + projectPath + "/config/external/catch2");
+    ExecShell::exec("git clone  https://github.com/bitboson-deps/Catch2.git " + projectPath + "/config/external/catch2");
 
     // Clone the plibsys Repository
-    ExecShell::exec("git clone git://github.com/saprykin/plibsys.git " + projectPath + "/.higgs-boson/external/raw/plibsyshiggsboson");
+    ExecShell::exec("git clone https://github.com/saprykin/plibsys.git " + projectPath + "/.higgs-boson/external/raw/plibsyshiggsboson");
 
     // Open the Header file
     bool headerFileWritten = false;
@@ -184,7 +184,7 @@ bool writeHiggsConfig(const std::string& confPath, bool isLibrary)
         higgsConfFile.writeLine("dependencies:");
         higgsConfFile.writeLine("  - name: leveldb");
         higgsConfFile.writeLine("    source: git");
-        higgsConfFile.writeLine("    url:  git://github.com/bitboson-deps/leveldb.git");
+        higgsConfFile.writeLine("    url:  https://github.com/bitboson-deps/leveldb.git");
         higgsConfFile.writeLine("    rev: 1.22");
         higgsConfFile.writeLine("    type: manual");
         higgsConfFile.writeLine("    target linux-x86:");
@@ -209,7 +209,7 @@ bool writeHiggsConfig(const std::string& confPath, bool isLibrary)
         higgsConfFile.writeLine("        - include/leveldb");
         higgsConfFile.writeLine("  - name: testdep");
         higgsConfFile.writeLine("    source: git");
-        higgsConfFile.writeLine("    url:  git://github.com/bitboson-deps/TestDependency.git");
+        higgsConfFile.writeLine("    url:  https://github.com/bitboson-deps/TestDependency.git");
         higgsConfFile.writeLine("    rev: 6203c62577ae90f09fdaaaa6a953823822b3996d");
         higgsConfFile.writeLine("    type: higgs-boson");
 

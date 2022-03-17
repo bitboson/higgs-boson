@@ -64,7 +64,7 @@ void checkoutDockross(const std::string& cacheDir, bool update=false)
 
     // Check-out the BitBoson fork of the dockcross project
     ExecShell::exec(std::string("git clone --recurse-submodules -b higgs-boson")
-            + std::string(" git://github.com/bitboson-deps/dockcross.git ")
+            + std::string(" https://github.com/bitboson-deps/dockcross.git ")
             + cacheDir + std::string("/dockcross"));
 
     // Update the dockcross installation if desired

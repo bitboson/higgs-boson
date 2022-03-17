@@ -42,7 +42,7 @@ TEST_CASE ("Generic Peru Settings Test", "[PeruSettingsTest]")
 
     // Setup the Peru settings with a git dependency
     REQUIRE (peruSettings.addDependency("miniyaml", PeruSettings::DependencyType::TYPE_GIT));
-    REQUIRE (peruSettings.addDependencyProperty("miniyaml", "url", " git://github.com/bitboson-deps/mini-yaml.git"));
+    REQUIRE (peruSettings.addDependencyProperty("miniyaml", "url", " https://github.com/bitboson-deps/mini-yaml.git"));
     REQUIRE (peruSettings.addDependencyProperty("miniyaml", "rev", "22d3dcf5684a11f9c0508c1ad8b3282a1d888319"));
 
     // Setup the Peru settings with a curl dependency
@@ -87,7 +87,7 @@ TEST_CASE ("Invalid Peru Settings Test", "[PeruSettingsTest]")
 
     // Setup the Peru settings with some dependencies
     REQUIRE (peruSettings.addDependency("miniyaml", PeruSettings::DependencyType::TYPE_GIT));
-    REQUIRE (peruSettings.addDependencyProperty("miniyaml", "url", " git://github.com/bitboson-deps/mini-yaml.git"));
+    REQUIRE (peruSettings.addDependencyProperty("miniyaml", "url", " https://github.com/bitboson-deps/mini-yaml.git"));
     REQUIRE (peruSettings.addDependencyProperty("miniyaml", "rev", "22d3dcf5684a11f9c0508c1ad8b3282a1d888319"));
 
     // Attempt to re-add a value which already exists

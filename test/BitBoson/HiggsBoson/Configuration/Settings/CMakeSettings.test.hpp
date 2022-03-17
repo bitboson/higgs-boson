@@ -45,10 +45,10 @@ bool writeProjectFiles(const std::string& projectPath)
     REQUIRE (system(std::string("mkdir -p " + projectPath + "/.higgs-boson/external/raw").c_str()) == 0);
 
     // Clone the Catch2 Repository
-    ExecShell::exec("git clone git://github.com/bitboson-deps/Catch2.git " + projectPath + "/.higgs-boson/external/raw/catch2higgsboson");
+    ExecShell::exec("git clone https://github.com/bitboson-deps/Catch2.git " + projectPath + "/.higgs-boson/external/raw/catch2higgsboson");
 
     // Clone the plibsys Repository
-    ExecShell::exec("git clone git://github.com/saprykin/plibsys.git " + projectPath + "/.higgs-boson/external/raw/plibsyshiggsboson");
+    ExecShell::exec("git clone https://github.com/saprykin/plibsys.git " + projectPath + "/.higgs-boson/external/raw/plibsyshiggsboson");
 
     // Open the Header file
     bool headerFileWritten = false;

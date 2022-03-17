@@ -45,7 +45,7 @@ bool writeConfig(const std::string& projectPath, const std::string& configFile)
     REQUIRE (system(std::string("mkdir -p " + projectPath + "/.higgs-boson/external/raw").c_str()) == 0);
 
     // Clone the Catch2 Repository
-    ExecShell::exec("git clone  git://github.com/bitboson-deps/Catch2.git " + projectPath + "/.higgs-boson/external/raw/catch2higgsboson");
+    ExecShell::exec("git clone  https://github.com/bitboson-deps/Catch2.git " + projectPath + "/.higgs-boson/external/raw/catch2higgsboson");
 
     // Open the Header file
     bool headerFileWritten = false;
@@ -155,7 +155,7 @@ bool writeConfig(const std::string& projectPath, const std::string& configFile)
         higgsConfFile.writeLine("dependencies:");
         higgsConfFile.writeLine("  - name: restbed");
         higgsConfFile.writeLine("    source: git");
-        higgsConfFile.writeLine("    url:  git://github.com/bitboson-deps/restbed.git");
+        higgsConfFile.writeLine("    url:  https://github.com/bitboson-deps/restbed.git");
         higgsConfFile.writeLine("    rev: 4.6");
         higgsConfFile.writeLine("    type: manual");
         higgsConfFile.writeLine("    target default:");
