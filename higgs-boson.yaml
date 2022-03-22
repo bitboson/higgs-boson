@@ -30,6 +30,7 @@ project:
   targets:
     - linux-x86
     - windows-shared-x86
+    - windows-shared-x64
     - apple-darwin-x64
     - apple-darwin-arm64
 
