@@ -217,7 +217,7 @@ std::string setupDockerImage(const std::string& target,
 
         // Setup the return value accordingly
         retVal = globalCacheDir + "/dockcross/bitboson-" + target + " ";
-        retVal += (std::string(isMacOsxTarget ? " init-osx" : "") +
+        retVal += (std::string(isMacOsxTarget ? " init-osx " : "") +
                 + (interactive ? "bash" : "container-watch-dog"));
     }
 
