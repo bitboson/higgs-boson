@@ -33,6 +33,14 @@ docker_ssh: clean
 build: clean
 	bash build.sh
 
+# Setup the osx-specific build with environment variables for convenience
+build_osx: clean
+	HIGGS_BOSON_TARGET_OS=darwin HIGGS_LIB_EXT=dylib bash build.sh
+
+# Setup the osx-specific build with environment variables for convenience
+build_windows: clean
+	HIGGS_BOSON_TARGET_OS=windows HIGGS_LIB_EXT=dll bash build.sh
+
 # Setup the build command (assuming manual build is complete)
 build2: build
 	LD_LIBRARY_PATH="output/manual/deps" output/manual/bin/higgs-boson download
