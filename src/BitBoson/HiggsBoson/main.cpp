@@ -165,6 +165,10 @@ std::string setupDockerImage(const std::string& target,
     if (HiggsBoson::RunTypeSingleton::getDockerSync() != nullptr)
         dockerSyncVolume = HiggsBoson::RunTypeSingleton::getDockerSync()->getVolume();
 
+    // Re-configure the container-name based on the target
+    HIGGS_BUILDER_NAME = HIGGS_BUILDER_NAME + "-" + target;
+    FileWriter::FileWriter::FileWriterConfigSingleton::setDockerContainerName(HIGGS_BUILDER_NAME);
+
     // Handle the higgs-boson target specifically
     if (target == "higgs-boson")
     {
@@ -400,8 +404,9 @@ int main(int argc, char* argv[])
             cliTarget = std::string(argv[2]);
 
         // Ensure the corresponding container is stopped
-        ExecShell::execWithResponse("Stopping Running Container (if running)",
-                "docker stop " + HIGGS_BUILDER_NAME);
+        std::cout << "Stopping Running Container (if running) ... " << std::flush;
+        ExecShell::exec("docker stop " + HIGGS_BUILDER_NAME + "-" + cliTarget);
+        std::cout << "OK" << std::endl;
 
         // Simply run the desired interactive docker container
         return ExecShell::execLive(getRunTypeCommand(cliTarget,
