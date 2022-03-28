@@ -38,9 +38,10 @@ namespace BitBoson::ExecShell
      * @param command String representing the command to run
      * @param background Boolean indicating whether to background
      *                   the execution of the provided command
+     * @param shouldLock Boolean indicating whether to lock or not
      * @return String representing the STDOUT for the command
      */
-    std::string exec(std::string command, bool background=false);
+    std::string exec(std::string command, bool background=false, bool shouldLock=true);
 
     /**
      * Function used to execute a given shell command on the

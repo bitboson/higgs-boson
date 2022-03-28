@@ -51,8 +51,8 @@ namespace BitBoson
                     std::string _initCmd;
                     std::string _runCommand;
                     std::string _containerName;
+                    std::thread* _watchDogBumper;
                     volatile bool _keepBumpingContainer;
-                    std::shared_ptr<std::thread> _watchDogBumper;
                     std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
                 // Public member functions
@@ -79,7 +79,7 @@ namespace BitBoson
 
                         // Create the background thread for bumping the container watch-dog-timer
                         getInstance()._keepBumpingContainer = true;
-                        getInstance()._watchDogBumper = std::make_shared<std::thread>(bumpBuilderWatchDogTimer, true);
+                        getInstance()._watchDogBumper = new std::thread(bumpBuilderWatchDogTimer, true);
                     }
 
                     /**
@@ -286,6 +286,7 @@ namespace BitBoson
                         getInstance()._keepBumpingContainer = false;
                         if (_watchDogBumper != nullptr)
                             _watchDogBumper->join();
+                        delete _watchDogBumper;
                     }
 
                 // Private member functions
@@ -353,7 +354,7 @@ namespace BitBoson
                                     containerCmd += (HiggsBoson::RunTypeSingleton::getInstance()._initCmd + " ");
 
                                 // Simply bump the watch-dog-timer within the Higgs-Boson builder container
-                                ExecShell::exec(containerCmd + "container-watch-dog -b");
+                                ExecShell::exec(containerCmd + "container-watch-dog -b", false, false);
                             }
 
                             // If this is a "looping" operation then sleep for 1 second

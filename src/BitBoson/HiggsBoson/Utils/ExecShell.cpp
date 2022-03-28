@@ -40,16 +40,18 @@ std::recursive_mutex shellMutex;
  * @param command String representing the command to run
  * @param background Boolean indicating whether to background
  *                   the execution of the provided command
+ * @param shouldLock Boolean indicating whether to lock or not
  * @return String representing the STDOUT for the command
  */
-std::string ExecShell::exec(std::string command, bool background)
+std::string ExecShell::exec(std::string command, bool background, bool shouldLock)
 {
 
     // Create a return value
     std::string retValue;
 
     // Lock the shell operation
-    shellMutex.lock();
+    if (shouldLock)
+        shellMutex.lock();
 
     // Handle the non-background case
     if (!background)
@@ -78,7 +80,8 @@ std::string ExecShell::exec(std::string command, bool background)
     }
 
     // Unlock the shell operation
-    shellMutex.unlock();
+    if (background)
+        shellMutex.unlock();
 
     // Return the return value
     return retValue;

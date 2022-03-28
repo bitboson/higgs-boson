@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <signal.h>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
 #include <BitBoson/HiggsBoson/Utils/FileWriter.h>
@@ -31,6 +32,21 @@ using namespace BitBoson;
 
 // Define some useful "constants" (will be modified)
 std::string HIGGS_BUILDER_NAME = Constants::DOCKER_HIGGS_BUILDER_PREFIX;
+
+/**
+ * Function used to handle a Ctrl-C Interrupt for the application
+ *
+ * @param signal Integer representing the interrupt signal
+ */
+void handleInterrupt(int signal)
+{
+
+    // Stop any running docker containers
+    ExecShell::exec("docker stop " + HIGGS_BUILDER_NAME);
+
+    // Gracefully (yet forcefully) exit the application runtime
+    std::exit(1);
+}
 
 /**
  * Function used to check if the given image name is valid for Dockcross
@@ -257,6 +273,9 @@ std::string getRunTypeCommand(const std::string& target,
  */
 int main(int argc, char* argv[])
 {
+
+    // Setup a Ctrl-C Interrupt handler to exit the application
+    signal(SIGINT, handleInterrupt);
 
     // Check if the command-line argument is "help"
     if ((argc > 1) && (std::string(argv[1]) == "help"))

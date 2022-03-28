@@ -715,6 +715,7 @@ bool CMakeSettings::writeCMakeFile(bool isTesting)
             cMakeFile.writeLine("    set(CMAKE_SHARED_LIBRARY_PREFIX \"lib\")");
             cMakeFile.writeLine("    set(CMAKE_SHARED_LIBRARY_SUFFIX \".dylib\")");
             cMakeFile.writeLine("    set(CMAKE_SHARED_LIBRARY_SONAME_C_FLAG \"-install_name \")");
+            cMakeFile.writeLine("    set(CMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG \"-install_name \")");
             cMakeFile.writeLine("endif()");
             cMakeFile.writeLine("");
             cMakeFile.writeLine("");
