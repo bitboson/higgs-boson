@@ -51,10 +51,8 @@ namespace BitBoson
                     std::string _initCmd;
                     std::string _runCommand;
                     std::string _containerName;
-                    std::thread* _watchDogBumper;
                     volatile bool _keepBumpingContainer;
-                    volatile bool _containerInitiallyBumped;
-                    volatile bool _containerStillBeingBumped;
+                    std::shared_ptr<std::thread> _watchDogBumper;
                     std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
                 // Public member functions
@@ -81,11 +79,7 @@ namespace BitBoson
 
                         // Create the background thread for bumping the container watch-dog-timer
                         getInstance()._keepBumpingContainer = true;
-                        getInstance()._containerInitiallyBumped = false;
-                        getInstance()._containerStillBeingBumped = true;
-                        getInstance()._watchDogBumper = new std::thread(bumpBuilderWatchDogTimer, true);
-                        while (!getInstance()._containerInitiallyBumped)
-                            std::this_thread::sleep_for(100ms);
+                        getInstance()._watchDogBumper = std::make_shared<std::thread>(bumpBuilderWatchDogTimer, true);
                     }
 
                     /**
@@ -288,20 +282,10 @@ namespace BitBoson
                     virtual ~RunTypeSingleton()
                     {
 
-                        // Wait for the background thread to start-up (if applicable)
-                        if (_keepBumpingContainer)
-                            while (!_containerInitiallyBumped)
-                                std::this_thread::sleep_for(100ms);
-
-                        // Attempt to stop the background thread before calling join
-                        _keepBumpingContainer = false;
-                        while (_containerStillBeingBumped)
-                            std::this_thread::sleep_for(100ms);
-
                         // Join/stop the watch-dog-timer bumper thread (if present)
+                        getInstance()._keepBumpingContainer = false;
                         if (_watchDogBumper != nullptr)
                             _watchDogBumper->join();
-                        delete _watchDogBumper;
                     }
 
                 // Private member functions
@@ -323,11 +307,6 @@ namespace BitBoson
 
                         // Setup the default bump-related thread (none)
                         _watchDogBumper = nullptr;
-
-                        // Setup default threading boolean values
-                        _keepBumpingContainer = false;
-                        _containerInitiallyBumped = false;
-                        _containerStillBeingBumped = false;
                     }
 
                     /**
@@ -380,15 +359,7 @@ namespace BitBoson
                             // If this is a "looping" operation then sleep for 1 second
                             if (isLooping)
                                 std::this_thread::sleep_for(1000ms);
-
-                            // Indicate that the container has been bumped at least once
-                            if (isLooping)
-                                HiggsBoson::RunTypeSingleton::getInstance()._containerInitiallyBumped = true;
                         }
-
-                        // Indicate that the container is no longer being bumped
-                        if (isLooping)
-                            HiggsBoson::RunTypeSingleton::getInstance()._containerStillBeingBumped = false;
                     }
             };
 
