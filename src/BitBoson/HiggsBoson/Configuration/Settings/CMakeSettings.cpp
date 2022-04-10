@@ -387,6 +387,10 @@ bool CMakeSettings::testCMakeProject(TestType testType, const std::string& testF
             testTypeString = "test";
     }
 
+    // Force a re-build by deleting the build directory itself
+    // NOTE: This is a current workaround and should be removed
+    HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " +  _cMakeCacheDir + "/builds/" + testTypeString);
+
     // Create the build directory for CMake to actually use
     if (wroteFile && HiggsBoson::RunTypeSingleton::executeInContainer(
         "mkdir -p " + _cMakeCacheDir + "/builds/" + testTypeString))

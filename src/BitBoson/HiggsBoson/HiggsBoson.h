@@ -347,14 +347,14 @@ namespace BitBoson
                             {
 
                                 // Setup the docker-exec command
-                                containerCmd += "docker exec -it " + HiggsBoson::RunTypeSingleton::getInstance()._containerName + " ";
+                                containerCmd += "docker exec " + HiggsBoson::RunTypeSingleton::getInstance()._containerName + " ";
 
                                 // Add in the init command if applicable
                                 if (!HiggsBoson::RunTypeSingleton::getInstance()._initCmd.empty())
                                     containerCmd += (HiggsBoson::RunTypeSingleton::getInstance()._initCmd + " ");
 
                                 // Simply bump the watch-dog-timer within the Higgs-Boson builder container
-                                ExecShell::exec(containerCmd + "container-watch-dog -b", false, false);
+                                ExecShell::exec(containerCmd + "bash container-watch-dog -b", true);
                             }
 
                             // If this is a "looping" operation then sleep for 1 second

@@ -110,7 +110,7 @@ bool HiggsBoson::buildDependencies(const std::string& target)
         HiggsBoson::RunTypeSingleton::executeInContainer("rm -rf " + targetHeaderCacheDir);
 
         // Re-create the output header cache directory
-        retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + targetHeaderCacheDir);
+        HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + targetHeaderCacheDir);
 
         // Handle the building and outputs for all of the dependencies
         for (const auto& dependency : _configuration->getDependencies())
@@ -125,7 +125,7 @@ bool HiggsBoson::buildDependencies(const std::string& target)
                     _configuration->getHeadersOutputForDependency(dependency, target));
 
             // Ensure the dependency-target directory exist
-            retFlag &= HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + depCacheDir);
+            HiggsBoson::RunTypeSingleton::executeInContainer("mkdir -p " + depCacheDir);
 
             // Write the libraries to the cache output directories
             for (const auto& library : dependency->getLibraries(target))

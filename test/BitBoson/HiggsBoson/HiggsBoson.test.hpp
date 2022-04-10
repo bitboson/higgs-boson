@@ -210,7 +210,7 @@ bool writeHiggsConfig(const std::string& confPath, bool isLibrary)
         higgsConfFile.writeLine("  - name: testdep");
         higgsConfFile.writeLine("    source: git");
         higgsConfFile.writeLine("    url:  https://github.com/bitboson-deps/TestDependency.git");
-        higgsConfFile.writeLine("    rev: 6203c62577ae90f09fdaaaa6a953823822b3996d");
+        higgsConfFile.writeLine("    rev: d1f7e3ae8eb75c558a1b48a00f27563f021d9a59");
         higgsConfFile.writeLine("    type: higgs-boson");
 
         // Close the configuration file
@@ -224,7 +224,7 @@ bool writeHiggsConfig(const std::string& confPath, bool isLibrary)
     return retFlag;
 }
 
-TEST_CASE ("General Executable Higgs-Boson Test", "[HiggsBosonTest]")
+TEST_CASE ("General Executable Higgs-Boson Test", "[HiggsBosonTest1]")
 {
 
     // Ensure that the directories we'll be using exists

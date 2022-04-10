@@ -40,22 +40,20 @@ std::recursive_mutex shellMutex;
  * @param command String representing the command to run
  * @param background Boolean indicating whether to background
  *                   the execution of the provided command
- * @param shouldLock Boolean indicating whether to lock or not
  * @return String representing the STDOUT for the command
  */
-std::string ExecShell::exec(std::string command, bool background, bool shouldLock)
+std::string ExecShell::exec(std::string command, bool background)
 {
 
     // Create a return value
     std::string retValue;
 
-    // Lock the shell operation
-    if (shouldLock)
-        shellMutex.lock();
-
     // Handle the non-background case
     if (!background)
     {
+
+        // Lock the shell operation
+        shellMutex.lock();
 
         // Run the command while piping STDERR to STDOUT
         command += " 2>&1";
@@ -69,19 +67,19 @@ std::string ExecShell::exec(std::string command, bool background, bool shouldLoc
         // continuously append the buffer to the results
         while (pipe && (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr))
             retValue += buffer.data();
+
+        // Unlock the shell operation
+        shellMutex.unlock();
     }
 
     // Handle the non-background case
     if (background)
     {
 
-        // Execute the command using the system operation
-        system(std::string(command + " > /dev/null &").c_str());
+        // Run the command in the background without any printable results
+        command += " 2>&1 > /dev/null &";
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
     }
-
-    // Unlock the shell operation
-    if (background)
-        shellMutex.unlock();
 
     // Return the return value
     return retValue;
