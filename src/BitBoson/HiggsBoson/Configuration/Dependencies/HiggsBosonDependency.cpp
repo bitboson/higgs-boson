@@ -158,6 +158,7 @@ bool HiggsBosonDependency::setupFromConfig(const std::string& dir, const std::st
                         "higgs-boson-internal build-deps internal " + target,
                         "higgs-boson-internal build internal " + target,
                     });
+        retFlag = true;
     }
 
     // Catch and ignore all exceptions

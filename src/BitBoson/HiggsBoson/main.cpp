@@ -522,20 +522,20 @@ int main(int argc, char* argv[])
 
         // Handle the default download operation (if applicable)
         if ((argc <= 2) || ((argc > 2) && (std::string(argv[2]) == "default")))
-            higgsBoson.download();
+            retFlag = higgsBoson.download();
 
         // Handle the local download operation (if applicable)
         if ((argc > 2) && (std::string(argv[2]) == "local"))
         {
             HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
-            higgsBoson.download();
+            retFlag = higgsBoson.download();
         }
 
         // Handle the internal download operation (if applicable)
         if ((argc > 2) && (std::string(argv[2]) == "internal"))
         {
             HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
-            higgsBoson.download();
+            retFlag = higgsBoson.download();
         }
 
         // Return the status of the operation
@@ -551,13 +551,13 @@ int main(int argc, char* argv[])
 
         // Handle the default build operation (if applicable)
         if ((argc <= 2) || ((argc > 2) && (std::string(argv[2]) == "default")))
-            higgsBoson.buildDependencies("default");
+            retFlag = higgsBoson.buildDependencies("default");
 
         // Handle the local build operation (if applicable)
         if ((argc > 2) && (std::string(argv[2]) == "local"))
         {
             HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
-            higgsBoson.buildDependencies("local");
+            retFlag = higgsBoson.buildDependencies("local");
         }
 
         // Handle the internal build operation (if applicable)
@@ -565,7 +565,7 @@ int main(int argc, char* argv[])
                 && ((argc > 3) && (!std::string(argv[3]).empty())))
         {
             HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
-            higgsBoson.buildDependencies(std::string(argv[3]));
+            retFlag = higgsBoson.buildDependencies(std::string(argv[3]));
         }
 
         // If the target was anything else, attempt to use
@@ -576,7 +576,7 @@ int main(int argc, char* argv[])
                     getRunTypeCommand(std::string(argv[2]),
                             currentPath, globalCacheDir, appCacheDir,
                             projectDirHash), HIGGS_BUILDER_NAME);
-            higgsBoson.buildDependencies(std::string(argv[2]));
+            retFlag = higgsBoson.buildDependencies(std::string(argv[2]));
         }
 
         // Return the status of the operation
@@ -592,13 +592,13 @@ int main(int argc, char* argv[])
 
         // Handle the default build operation (if applicable)
         if ((argc <= 2) || ((argc > 2) && (std::string(argv[2]) == "default")))
-            higgsBoson.buildProject("default");
+            retFlag = higgsBoson.buildProject("default");
 
         // Handle the local build operation (if applicable)
         if ((argc > 2) && (std::string(argv[2]) == "local"))
         {
             HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
-            higgsBoson.buildProject("local");
+            retFlag = higgsBoson.buildProject("local");
         }
 
         // Handle the internal build operation (if applicable)
@@ -606,7 +606,7 @@ int main(int argc, char* argv[])
                 && ((argc > 3) && (!std::string(argv[3]).empty())))
         {
             HiggsBoson::RunTypeSingleton::setDockerRunCommand("sh");
-            higgsBoson.buildProject(std::string(argv[3]));
+            retFlag = higgsBoson.buildProject(std::string(argv[3]));
         }
 
         // If the target was anything else, attempt to use
@@ -617,12 +617,15 @@ int main(int argc, char* argv[])
                     getRunTypeCommand(std::string(argv[2]),
                             currentPath, globalCacheDir, appCacheDir,
                             projectDirHash), HIGGS_BUILDER_NAME);
-            higgsBoson.buildProject(std::string(argv[2]));
+            retFlag = higgsBoson.buildProject(std::string(argv[2]));
         }
 
         // Return the status of the operation
         return (retFlag ? 0 : 1);
     }
+
+    // Setup a return flag to handle all remaining (test) cases
+    bool retFlag = false;
 
     // If there is a filter criteria, read it in as well
     // to apply to tests when they are run
@@ -643,22 +646,22 @@ int main(int argc, char* argv[])
     // Handle test command (if applicable)
     if (((argc > 1) && (std::string(argv[1]) == "profile"))
             || (isInternal && (std::string(argv[2]) == "profile")))
-        higgsBoson.testProject(CMakeSettings::TestType::PROFILE, testFilter);
+        retFlag = higgsBoson.testProject(CMakeSettings::TestType::PROFILE, testFilter);
 
     // Handle test command (if applicable)
     if (((argc > 1) && (std::string(argv[1]) == "test"))
             || (isInternal && (std::string(argv[2]) == "test")))
-        higgsBoson.testProject(CMakeSettings::TestType::TEST, testFilter);
+        retFlag = higgsBoson.testProject(CMakeSettings::TestType::TEST, testFilter);
 
     // Handle debug command (if applicable)
     if (((argc > 1) && (std::string(argv[1]) == "debug"))
             || (isInternal && (std::string(argv[2]) == "debug")))
-        higgsBoson.testProject(CMakeSettings::TestType::DEBUG, testFilter);
+        retFlag = higgsBoson.testProject(CMakeSettings::TestType::DEBUG, testFilter);
 
     // Handle coverage command (if applicable)
     if (((argc > 1) && (std::string(argv[1]) == "coverage"))
             || (isInternal && (std::string(argv[2]) == "coverage")))
-        higgsBoson.testProject(CMakeSettings::TestType::COVERAGE, testFilter);
+        retFlag = higgsBoson.testProject(CMakeSettings::TestType::COVERAGE, testFilter);
 
     // Handle sanitize command (if applicable)
     if (((argc > 1) && (std::string(argv[1]) == "sanitize"))
@@ -668,28 +671,28 @@ int main(int argc, char* argv[])
         // Handle the sanitize address operation (if applicable)
         if (((argc > 2) && (std::string(argv[2]) == "address"))
                 || (isInternal && (std::string(argv[3]) == "address")))
-            higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_ADDRESS);
+            retFlag = higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_ADDRESS);
 
         // Handle the sanitize address operation (if applicable)
         else if (((argc > 2) && (std::string(argv[2]) == "behavior"))
                 || (isInternal && (std::string(argv[3]) == "behavior")))
-            higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_BEHAVIOR);
+            retFlag = higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_BEHAVIOR);
 
         // Handle the sanitize address operation (if applicable)
         else if (((argc > 2) && (std::string(argv[2]) == "thread"))
                 || (isInternal && (std::string(argv[3]) == "thread")))
-            higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_THREAD);
+            retFlag = higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_THREAD);
 
         // Handle the sanitize address operation (if applicable)
         else if (((argc > 2) && (std::string(argv[2]) == "leak"))
                 || (isInternal && (std::string(argv[3]) == "leak")))
-            higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_LEAK);
+            retFlag = higgsBoson.testProject(CMakeSettings::TestType::SANITIZE_LEAK);
 
         // Handle the case where no desired sanitizer was selected
         else
             std::cout << "A valid sanitizer must be chosen: address, behavior, thread, or leak" << std::endl;
     }
 
-    // If we get here, return a successful return code
-    return 0;
+    // Return the result of the return-flag
+    return (retFlag ? 0 : 1);
 };
