@@ -19,7 +19,8 @@
  *     - Tyler Parcell <OriginLegend>
  */
 
-
+#include <regex>
+#include <string>
 #include <algorithm>
 #include <BitBoson/HiggsBoson/HiggsBoson.h>
 #include <BitBoson/HiggsBoson/Utils/Utils.h>
@@ -81,7 +82,15 @@ bool ManualDependency::setBuildSteps(const std::string& target,
 
             // Write the build-steps to the corresponding file
             for (const auto& buildStep : buildSteps)
-                buildFile.writeLine(buildStep);
+            {
+
+                // Perform relevant replacements for the build-step
+                auto modifiedBuildStep = std::regex_replace(buildStep, std::regex("__COLON__"), ":");
+                modifiedBuildStep = std::regex_replace(modifiedBuildStep, std::regex("__QUOTE__"), "\"");
+
+                // Write-in the modified build-setup
+                buildFile.writeLine(modifiedBuildStep);
+            }
 
             // Close the build file
             buildFile.close();

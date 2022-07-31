@@ -262,6 +262,8 @@ bool CMakeSettings::buildCMakeProject(const std::string& target)
             buildFile.write("cmake");
             if (target == "default")
                 buildFile.write(" -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++");
+            else
+                buildFile.write(" -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX");
             buildFile.writeLine(" -DCMAKE_BUILD_TYPE=Release " + _cMakeCacheDir);
             buildFile.writeLine("");
 

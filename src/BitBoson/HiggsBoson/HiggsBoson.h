@@ -22,6 +22,7 @@
 #ifndef HIGGS_BOSON_HIGGS_BOSON_H
 #define HIGGS_BOSON_HIGGS_BOSON_H
 
+#include <mutex>
 #include <string>
 #include <memory>
 #include <thread>
@@ -52,6 +53,7 @@ namespace BitBoson
                     std::string _runCommand;
                     std::string _containerName;
                     std::thread* _watchDogBumper;
+                    std::mutex _runBumpLoopMutex;
                     volatile bool _keepBumpingContainer;
                     std::shared_ptr<DockerSyncSettings> _dockerSyncSettings;
 
@@ -78,8 +80,10 @@ namespace BitBoson
                             getInstance()._isContainer = true;
 
                         // Create the background thread for bumping the container watch-dog-timer
+                        getInstance()._runBumpLoopMutex.lock();
                         getInstance()._keepBumpingContainer = true;
                         getInstance()._watchDogBumper = new std::thread(bumpBuilderWatchDogTimer, true);
+                        getInstance()._runBumpLoopMutex.unlock();
                     }
 
                     /**
@@ -283,7 +287,9 @@ namespace BitBoson
                     {
 
                         // Join/stop the watch-dog-timer bumper thread (if present)
+                        getInstance()._runBumpLoopMutex.lock();
                         getInstance()._keepBumpingContainer = false;
+                        getInstance()._runBumpLoopMutex.unlock();
                         if (_watchDogBumper != nullptr)
                             _watchDogBumper->join();
                         delete _watchDogBumper;
@@ -337,8 +343,14 @@ namespace BitBoson
                     {
 
                         // Keep bumping the container if specified to do so
-                        while (isLooping && HiggsBoson::RunTypeSingleton::getInstance()._keepBumpingContainer)
+                        bool keepBumpingContainer = true;
+                        while (isLooping && keepBumpingContainer)
                         {
+
+                            // Keep checking if we should be bumping the container
+                            getInstance()._runBumpLoopMutex.lock();
+                            keepBumpingContainer = HiggsBoson::RunTypeSingleton::getInstance()._keepBumpingContainer;
+                            getInstance()._runBumpLoopMutex.unlock();
 
                             // Determine if we are actually running in a container
                             // which is also using a watch-dog-timer
