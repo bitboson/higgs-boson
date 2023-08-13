@@ -332,12 +332,12 @@ int main(int argc, char* argv[])
     ExecShell::exec("mkdir -p " + appCacheDir);
 
     // Use/setup docker-sync if it is installed (or configured to do so)
-    bool dockerSyncInstalled = (ExecShell::exec("docker-sync --version")
-            .find("not found") == std::string::npos);
-    dockerSyncInstalled |= (ExecShell::exec("docker-sync --version")
-            .find("docker-sync:") == std::string::npos);
-    if (dockerSyncInstalled && (std::string(argv[1]) != "setup"))
-        HiggsBoson::RunTypeSingleton::getDockerSync(currentPath, appCacheDir, projectDirHash, globalCacheDir);
+    // bool dockerSyncInstalled = (ExecShell::exec("docker-sync --version")
+    //         .find("not found") == std::string::npos);
+    // dockerSyncInstalled |= (ExecShell::exec("docker-sync --version")
+    //         .find("docker-sync:") == std::string::npos);
+    // if (dockerSyncInstalled && (std::string(argv[1]) != "setup"))
+    //     HiggsBoson::RunTypeSingleton::getDockerSync(currentPath, appCacheDir, projectDirHash, globalCacheDir);
 
     // Handle list-targets command (if applicable)
     if ((argc > 1) && (std::string(argv[1]) == "list-targets"))
